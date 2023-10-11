@@ -1,4 +1,4 @@
-module civet148/cosmos-cli
+module github.com/civet148/cosmos-cli
 
 go 1.21.0
 
