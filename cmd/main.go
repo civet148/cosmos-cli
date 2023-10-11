@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/civet148/cosmos-cli/chain"
 	"github.com/civet148/log"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -79,11 +80,15 @@ var initCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:    CMD_FLAG_NAME_CONFIG,
 			Usage:   "ignite config file path",
+			Value:   "config.yml",
 			Aliases: []string{"c"},
 		},
 	},
 	Action: func(cctx *cli.Context) error {
-
-		return nil
+		opt := &chain.InitOption{
+			IgniteConfigPath: cctx.String(CMD_FLAG_NAME_CONFIG),
+		}
+		service := chain.NewInitChain(opt)
+		return service.Run()
 	},
 }
