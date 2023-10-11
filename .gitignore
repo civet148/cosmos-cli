@@ -19,3 +19,5 @@
 
 # Go workspace file
 go.work
+/cosmos-cli
+/cosmos-cli.exe
