@@ -11,13 +11,13 @@ import (
 )
 
 type InitOption struct {
-	IgniteCmd    string // ignite command file path
-	ConfigPath   string // config file path
-	NodeCmd      string // chain node command
-	DefaultDenom string // default denom
-	ChainID      string // chain id
-	KeyPhrase    string // pass phrase to protect keys
-	DefaultPort  string // default p2p port
+	IgniteCmd      string // ignite command file path
+	ConfigPath     string // config file path
+	NodeCmd        string // chain node command
+	DefaultDenom   string // default denom
+	ChainID        string // chain id
+	KeyPhrase      string // pass phrase to protect keys
+	KeyringBackend string // keyring backend
 }
 
 type InitChain struct {
@@ -25,7 +25,7 @@ type InitChain struct {
 	nNodeCount        int         //node count
 	strNode0Home      string      //node0 home
 	strNode0Validator string      //node0 validator
-	strKeyFile        string      // key file to save
+	strKeyFile        string      //key file to save
 }
 
 func NewInitChain(opt *InitOption) api.ManagerApi {
@@ -121,7 +121,7 @@ func (c *InitChain) checkConfig(ic *types.IgniteConfig) error {
 
 func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 	opt := c.option
-	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase)
+	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase, opt.KeyringBackend)
 
 	cmd := utils.NewCmdExecutor(true)
 
@@ -164,7 +164,60 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 			//remove template key file
 			os.Remove(c.strKeyFile)
 		}
+
+		//add all validator genesis account to first validator
+		cmdline = maker.MakeCmdLineAddGenesisAccount(v.Name, c.strNode0Home, v.Bonded)
+		_, err = cmd.Shell(cmdline)
+		if err != nil {
+			log.Errorf(err.Error())
+			return
+		}
+		if v.Name != c.strNode0Validator {
+			//add self validator genesis account
+			cmdline = maker.MakeCmdLineAddGenesisAccount(v.Name, v.Home, v.Bonded)
+			_, err = cmd.Shell(cmdline)
+			if err != nil {
+				log.Errorf(err.Error())
+				return
+			}
+		}
+		//gen genesis tx for every validator
+		strPort := utils.ParseP2PPort(v.Config.P2P.Laddr)
+		cmdline = maker.MakeCmdLineGenTx(v.Name, v.Home, v.Bonded, v.IP, strPort)
+		_, err = cmd.Shell(cmdline)
+		if err != nil {
+			log.Errorf(err.Error())
+			return
+		}
+		if v.Name != c.strNode0Validator {
+			//copy other gentx to first validator
+			cmdline = maker.MakeCmdLineCopyGenTxJSON(v.Home, c.strNode0Home)
+			_, err = cmd.Shell(cmdline)
+			if err != nil {
+				log.Errorf(err.Error())
+				return
+			}
+			cmdline := maker.MakeCmdLineCopyGenesisFile(v.Home, c.strNode0Home)
+			_, err = cmd.Shell(cmdline)
+			if err != nil {
+				log.Errorf(err.Error())
+				return
+			}
+		}
 	}
 
+	//collect gentxs for first validator
+	cmdline := maker.MakeCmdLineCollectGenTxs(c.strNode0Home)
+	_, err = cmd.Shell(cmdline)
+	if err != nil {
+		log.Errorf(err.Error())
+		return
+	}
+	cmdline = maker.MakeCmdLineValidateGenesis(c.strNode0Home)
+	_, err = cmd.Shell(cmdline)
+	if err != nil {
+		log.Errorf(err.Error())
+		return
+	}
 	return nil
 }

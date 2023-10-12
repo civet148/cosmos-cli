@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/civet148/cosmos-cli/chain"
 	"github.com/civet148/cosmos-cli/types"
+	"github.com/civet148/cosmos-cli/utils"
 	"github.com/civet148/log"
 	"github.com/urfave/cli/v2"
 	"os"
 	"os/signal"
+	"strings"
 )
 
 const (
@@ -31,7 +33,6 @@ const (
 	CMD_FLAG_NAME_DEFAULT_DENOM = "default-denom"
 	CMD_FLAG_NAME_CHAIN_ID      = "chain-id"
 	CMD_FLAG_NAME_KEY_PHRASE    = "key-phrase"
-	CMD_FLAG_NAME_P2P_PORT      = "p2p-port"
 )
 
 func init() {
@@ -120,34 +121,28 @@ var initCmd = &cli.Command{
 			Value:   "88888888",
 			Aliases: []string{"p"},
 		},
-		&cli.StringFlag{
-			Name:    CMD_FLAG_NAME_P2P_PORT,
-			Usage:   "p2p port",
-			Value:   types.COSMOS_P2P_PORT,
-			Aliases: []string{"P"},
-		},
 	},
 	Before: func(context *cli.Context) error {
 		//check shells command installed or not before init chain
-		//cmd := utils.NewCmdExecutor(false)
-		//output, err := cmd.Run(types.EXEC_CMD_WHICH, types.EXPECT_COMMAND)
-		//if err != nil {
-		//	return err
-		//}
-		//if strings.TrimSpace(output) == "" {
-		//	return fmt.Errorf("%s command not found", types.EXPECT_COMMAND)
-		//}
+		cmd := utils.NewCmdExecutor(false)
+		output, err := cmd.Run(types.EXEC_CMD_WHICH, types.EXPECT_COMMAND)
+		if err != nil {
+			return err
+		}
+		if strings.TrimSpace(output) == "" {
+			return fmt.Errorf("%s command not found, please install expect first", types.EXPECT_COMMAND)
+		}
 		return nil
 	},
 	Action: func(cctx *cli.Context) error {
 		opt := &chain.InitOption{
-			ConfigPath:   cctx.String(CMD_FLAG_NAME_CONFIG),
-			IgniteCmd:    cctx.String(CMD_FLAG_NAME_IGNITE_CMD),
-			NodeCmd:      cctx.String(CMD_FLAG_NAME_NODE_CMD),
-			DefaultDenom: cctx.String(CMD_FLAG_NAME_DEFAULT_DENOM),
-			ChainID:      cctx.String(CMD_FLAG_NAME_CHAIN_ID),
-			KeyPhrase:    cctx.String(CMD_FLAG_NAME_KEY_PHRASE),
-			DefaultPort:  cctx.String(CMD_FLAG_NAME_P2P_PORT),
+			KeyringBackend: types.KEYRING_BACKEND,
+			ConfigPath:     cctx.String(CMD_FLAG_NAME_CONFIG),
+			IgniteCmd:      cctx.String(CMD_FLAG_NAME_IGNITE_CMD),
+			NodeCmd:        cctx.String(CMD_FLAG_NAME_NODE_CMD),
+			DefaultDenom:   cctx.String(CMD_FLAG_NAME_DEFAULT_DENOM),
+			ChainID:        cctx.String(CMD_FLAG_NAME_CHAIN_ID),
+			KeyPhrase:      cctx.String(CMD_FLAG_NAME_KEY_PHRASE),
 		}
 		service := chain.NewInitChain(opt)
 		return service.Run()

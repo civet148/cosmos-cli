@@ -23,4 +23,5 @@ const (
 
 const (
 	EXPORT_KEY_FILE = "/tmp/account.key"
+	KEYRING_BACKEND = "file"
 )

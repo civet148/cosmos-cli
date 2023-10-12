@@ -7,21 +7,23 @@ import (
 )
 
 type ChainMaker struct {
-	strChainID      string
-	strNodeCmd      string
-	strDefaultDenom string
-	strKeyPhrase    string
+	strChainID        string
+	strNodeCmd        string
+	strDefaultDenom   string
+	strKeyPhrase      string
+	strKeyringBackend string
 }
 
-func NewChainMaker(strNodeCmd, strChainID, strDefaultDenom, strKeyPhrase string) *ChainMaker {
+func NewChainMaker(strNodeCmd, strChainID, strDefaultDenom, strKeyPhrase, strKeyringBackend string) *ChainMaker {
 	if strNodeCmd == "" || strChainID == "" || strKeyPhrase == "" {
 		log.Panic("node command, chain id and key phrase must not be empty")
 	}
 	return &ChainMaker{
-		strChainID:      strChainID,
-		strNodeCmd:      strNodeCmd,
-		strDefaultDenom: strDefaultDenom,
-		strKeyPhrase:    strKeyPhrase,
+		strChainID:        strChainID,
+		strNodeCmd:        strNodeCmd,
+		strDefaultDenom:   strDefaultDenom,
+		strKeyPhrase:      strKeyPhrase,
+		strKeyringBackend: strKeyringBackend,
 	}
 }
 
@@ -41,7 +43,7 @@ func (s *ChainMaker) MakeCmdLineInit(strMoniker, strHome string) string {
 }
 
 func (s *ChainMaker) MakeCmdLineKeysAdd(strAccName, strHome string) string {
-	strSpawn := fmt.Sprintf("%s keys add %s --home %s", s.NodeCmd(), strAccName, strHome)
+	strSpawn := fmt.Sprintf("%s keys add %s --home %s --keyring-backend %s", s.NodeCmd(), strAccName, strHome, s.strKeyringBackend)
 	strCmdLine := fmt.Sprintf(`
 		expect <<-EOF
 		spawn %s
@@ -56,11 +58,11 @@ func (s *ChainMaker) MakeCmdLineKeysAdd(strAccName, strHome string) string {
 }
 
 func (s *ChainMaker) MakeCmdLineKeysShow(strAccName, strHome string) string {
-	return fmt.Sprintf("%s keys show %s --home %s", s.NodeCmd(), strAccName, strHome)
+	return fmt.Sprintf("%s keys show %s --home %s --keyring-backend %s", s.NodeCmd(), strAccName, strHome, s.strKeyringBackend)
 }
 
 func (s *ChainMaker) MakeCmdLineKeysExport(strAccName, strHome, strKeyFile string) string {
-	strSpawn := fmt.Sprintf("%s keys export %s --home %s > %s", s.NodeCmd(), strAccName, strHome, strKeyFile)
+	strSpawn := fmt.Sprintf("%s keys export %s --home %s --keyring-backend %s > %s", s.NodeCmd(), strAccName, strHome, s.strKeyringBackend, strKeyFile)
 	strCmdLine := fmt.Sprintf(`
 		expect <<-EOF
 		spawn %s
@@ -75,7 +77,7 @@ func (s *ChainMaker) MakeCmdLineKeysExport(strAccName, strHome, strKeyFile strin
 }
 
 func (s *ChainMaker) MakeCmdLineKeysImport(strAccName, strHome, strKeyFile string) string {
-	strSpawn := fmt.Sprintf("%s keys import %s %s --home %s", s.NodeCmd(), strAccName, strKeyFile, strHome)
+	strSpawn := fmt.Sprintf("%s keys import %s %s --home %s --keyring-backend %s", s.NodeCmd(), strAccName, strKeyFile, strHome, s.strKeyringBackend)
 	strCmdLine := fmt.Sprintf(`
 		expect <<-EOF
 		spawn %s
@@ -92,11 +94,30 @@ func (s *ChainMaker) MakeCmdLineKeysImport(strAccName, strHome, strKeyFile strin
 }
 
 func (s *ChainMaker) MakeCmdLineAddGenesisAccount(strAccName, strHome, strBalances string) string {
-	return fmt.Sprintf("%s add-genesis-account %s %s --home %s", s.NodeCmd(), strAccName, strBalances, strHome)
+	strSpawn := fmt.Sprintf("%s add-genesis-account %s %s --home %s --keyring-backend %s", s.NodeCmd(), strAccName, strBalances, strHome, s.strKeyringBackend)
+	strCmdLine := fmt.Sprintf(`
+		expect <<-EOF
+		spawn %s
+		expect "Enter keyring passphrase"
+		send "%s\r"
+		expect eof
+		EOF
+`, strSpawn, s.strKeyPhrase)
+	return strCmdLine
 }
 
 func (s *ChainMaker) MakeCmdLineGenTx(strAccName, strHome, strStaking, strIP, strPort string) string {
-	return fmt.Sprintf("%s gentx %s %s --chain-id %s --ip %s --p2p-port %s --home %s", s.NodeCmd(), strAccName, strStaking, s.strChainID, strIP, strPort, strHome)
+	strSpawn := fmt.Sprintf("%s gentx %s %s --chain-id %s --ip %s --p2p-port %s --home %s --keyring-backend %s",
+		s.NodeCmd(), strAccName, strStaking, s.strChainID, strIP, strPort, strHome, s.strKeyringBackend)
+	strCmdLine := fmt.Sprintf(`
+		expect <<-EOF
+		spawn %s
+		expect "Enter keyring passphrase"
+		send "%s\r"
+		expect eof
+		EOF
+`, strSpawn, s.strKeyPhrase)
+	return strCmdLine
 }
 
 func (s *ChainMaker) MakeCmdLineCopyGenTxJSON(strHomeSrc, strHomeDst string) string {
