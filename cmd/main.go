@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/civet148/cosmos-cli/chain"
+	"github.com/civet148/cosmos-cli/types"
 	"github.com/civet148/log"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -24,7 +25,13 @@ const (
 )
 
 const (
-	CMD_FLAG_NAME_CONFIG = "config"
+	CMD_FLAG_NAME_CONFIG        = "config"
+	CMD_FLAG_NAME_IGNITE_CMD    = "ignite-cmd"
+	CMD_FLAG_NAME_NODE_CMD      = "node-cmd"
+	CMD_FLAG_NAME_DEFAULT_DENOM = "default-denom"
+	CMD_FLAG_NAME_CHAIN_ID      = "chain-id"
+	CMD_FLAG_NAME_KEY_PHRASE    = "key-phrase"
+	CMD_FLAG_NAME_P2P_PORT      = "p2p-port"
 )
 
 func init() {
@@ -79,14 +86,68 @@ var initCmd = &cli.Command{
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    CMD_FLAG_NAME_CONFIG,
-			Usage:   "ignite config file path",
+			Usage:   "config file path",
 			Value:   "config.yml",
 			Aliases: []string{"c"},
 		},
+		&cli.StringFlag{
+			Name:    CMD_FLAG_NAME_IGNITE_CMD,
+			Usage:   "ignite cmd file path",
+			Value:   "ignite",
+			Aliases: []string{"i"},
+		},
+		&cli.StringFlag{
+			Name:    CMD_FLAG_NAME_NODE_CMD,
+			Usage:   "node command",
+			Value:   "coeusd",
+			Aliases: []string{"n"},
+		},
+		&cli.StringFlag{
+			Name:    CMD_FLAG_NAME_DEFAULT_DENOM,
+			Usage:   "default denom",
+			Value:   "ushby",
+			Aliases: []string{"d"},
+		},
+		&cli.StringFlag{
+			Name:    CMD_FLAG_NAME_CHAIN_ID,
+			Usage:   "chain id",
+			Value:   "coeus",
+			Aliases: []string{""},
+		},
+		&cli.StringFlag{
+			Name:    CMD_FLAG_NAME_KEY_PHRASE,
+			Usage:   "pass phrase to protect keys",
+			Value:   "88888888",
+			Aliases: []string{"p"},
+		},
+		&cli.StringFlag{
+			Name:    CMD_FLAG_NAME_P2P_PORT,
+			Usage:   "p2p port",
+			Value:   types.COSMOS_P2P_PORT,
+			Aliases: []string{"P"},
+		},
+	},
+	Before: func(context *cli.Context) error {
+		//check shells command installed or not before init chain
+		//cmd := utils.NewCmdExecutor(false)
+		//output, err := cmd.Run(types.EXEC_CMD_WHICH, types.EXPECT_COMMAND)
+		//if err != nil {
+		//	return err
+		//}
+		//if strings.TrimSpace(output) == "" {
+		//	return fmt.Errorf("%s command not found", types.EXPECT_COMMAND)
+		//}
+		return nil
 	},
 	Action: func(cctx *cli.Context) error {
 		opt := &chain.InitOption{
-			IgniteConfigPath: cctx.String(CMD_FLAG_NAME_CONFIG),
+			ConfigPath:   cctx.String(CMD_FLAG_NAME_CONFIG),
+			IgniteCmd:    cctx.String(CMD_FLAG_NAME_IGNITE_CMD),
+			NodeCmd:      cctx.String(CMD_FLAG_NAME_NODE_CMD),
+			DefaultDenom: cctx.String(CMD_FLAG_NAME_DEFAULT_DENOM),
+			ChainID:      cctx.String(CMD_FLAG_NAME_CHAIN_ID),
+			KeyPhrase:    cctx.String(CMD_FLAG_NAME_KEY_PHRASE),
+			DefaultPort:  cctx.String(CMD_FLAG_NAME_P2P_PORT),
 		}
 		service := chain.NewInitChain(opt)
 		return service.Run()

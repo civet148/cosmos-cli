@@ -26,7 +26,8 @@ client:
 validators:
 - name: validator0
   bonded: 200000000000uhby
-  home: ""
+  home: "/data/node0"
+  ip: "172.20.0.100"
   app:
      minimum-gas-prices: "0.000002ushby"
      api:

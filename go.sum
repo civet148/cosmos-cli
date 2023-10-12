@@ -106,8 +106,8 @@ github.com/circonus-labs/circonus-gometrics v2.3.1+incompatible/go.mod h1:nmEj6D
 github.com/circonus-labs/circonusllhist v0.1.3/go.mod h1:kMXHVDlOchFAehlya5ePtbp5jckzBHf4XRpQvBOLI+I=
 github.com/civet148/gotools v1.4.1 h1:9E2rVOUIebQvdG/75iEc1/nqWxqmrUTSWepl0dbaGHo=
 github.com/civet148/gotools v1.4.1/go.mod h1:SfbUhBkKsnCIZ+1Ac94sQ2yTCbwkRKgVjDgGxrwPYmw=
-github.com/civet148/log v1.4.4 h1:CAIQ90qGai99qHO/koRRG0P5r80qxPmZQTHKrWMIPiU=
-github.com/civet148/log v1.4.4/go.mod h1:1+dISnXR1i3HoAVd3IAzhs0TduJ7QOC50ZHEfzXGH7o=
+github.com/civet148/log v1.5.0 h1:bavBmx+TdG3YdL98tScUiw+6PCuGVLCgH99dc16oP1Y=
+github.com/civet148/log v1.5.0/go.mod h1:1+dISnXR1i3HoAVd3IAzhs0TduJ7QOC50ZHEfzXGH7o=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=

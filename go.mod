@@ -3,7 +3,7 @@ module github.com/civet148/cosmos-cli
 go 1.21.0
 
 require (
-	github.com/civet148/log v1.4.4
+	github.com/civet148/log v1.5.0
 	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/urfave/cli/v2 v2.25.7
 	gopkg.in/yaml.v2 v2.4.0

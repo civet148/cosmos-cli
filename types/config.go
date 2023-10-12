@@ -15,6 +15,7 @@ type IgniteConfig struct {
 		Name   string `yaml:"name"`
 		Bonded string `yaml:"bonded"`
 		Home   string `yaml:"home"`
+		IP     string `yaml:"ip"`
 		App    struct {
 			MinimumGasPrices string `yaml:"minimum-gas-prices"`
 			API              struct {
