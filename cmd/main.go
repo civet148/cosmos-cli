@@ -9,7 +9,6 @@ import (
 	"github.com/urfave/cli/v2"
 	"os"
 	"os/signal"
-	"strings"
 )
 
 const (
@@ -88,49 +87,46 @@ var initCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:    CMD_FLAG_NAME_CONFIG,
 			Usage:   "config file path",
-			Value:   "config.yml",
+			Value:   types.DEFAULT_CONFIG_FILE,
 			Aliases: []string{"c"},
-		},
-		&cli.StringFlag{
-			Name:    CMD_FLAG_NAME_IGNITE_CMD,
-			Usage:   "ignite cmd file path",
-			Value:   "ignite",
-			Aliases: []string{"i"},
 		},
 		&cli.StringFlag{
 			Name:    CMD_FLAG_NAME_NODE_CMD,
 			Usage:   "node command",
-			Value:   "coeusd",
+			Value:   types.DEFAULT_NODE_CMD,
 			Aliases: []string{"n"},
 		},
 		&cli.StringFlag{
 			Name:    CMD_FLAG_NAME_DEFAULT_DENOM,
-			Usage:   "default denom",
-			Value:   "ushby",
+			Usage:   "default denom for staking",
+			Value:   types.DEFAULT_DENON,
 			Aliases: []string{"d"},
 		},
 		&cli.StringFlag{
 			Name:    CMD_FLAG_NAME_CHAIN_ID,
 			Usage:   "chain id",
-			Value:   "coeus",
+			Value:   types.DEFAULT_CHAIN_ID,
 			Aliases: []string{""},
 		},
 		&cli.StringFlag{
 			Name:    CMD_FLAG_NAME_KEY_PHRASE,
 			Usage:   "pass phrase to protect keys",
-			Value:   "88888888",
+			Value:   types.DEFAULT_KEY_PHRASE,
 			Aliases: []string{"p"},
 		},
 	},
 	Before: func(context *cli.Context) error {
 		//check shells command installed or not before init chain
 		cmd := utils.NewCmdExecutor(false)
-		output, err := cmd.Run(types.EXEC_CMD_WHICH, types.EXPECT_COMMAND)
-		if err != nil {
-			return err
-		}
-		if strings.TrimSpace(output) == "" {
-			return fmt.Errorf("%s command not found, please install expect first", types.EXPECT_COMMAND)
+		ok := cmd.Which(types.COMMAND_NAME_EXPECT)
+		if !ok {
+			if !cmd.Which(types.COMMAND_NAME_APT_GET) && !cmd.Which(types.COMMAND_NAME_APT) {
+				return fmt.Errorf("%s command not found, please install expect first", types.COMMAND_NAME_EXPECT)
+			}
+			_, err := cmd.Shell("sudo apt-get install -y expect")
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	},

@@ -5,6 +5,7 @@ import (
 	"github.com/civet148/cosmos-cli/types"
 	"github.com/civet148/log"
 	"os/exec"
+	"strings"
 )
 
 type CmdExecutor struct {
@@ -19,7 +20,7 @@ func NewCmdExecutor(debug bool) *CmdExecutor {
 
 func (m *CmdExecutor) Run(name string, args ...string) (output string, err error) {
 	cmd := exec.Command(name, args...)
-	log.Infof("executing [%s %v]...", name, FmtStringArgs(args...))
+	log.Infof("execute [%s %v]...", name, FmtStringArgs(args...))
 	var data []byte
 	data, err = cmd.CombinedOutput()
 	output = string(data)
@@ -39,6 +40,17 @@ func (m *CmdExecutor) Shell(cmdline string) (output string, err error) {
 	args = append(args, types.EXEC_SHELL_ARG)
 	args = append(args, cmdline)
 	return m.Run(types.EXEC_CMD_SHELL, args...)
+}
+
+func (m *CmdExecutor) Which(cmd string) bool {
+	output, err := m.Run(types.EXEC_CMD_WHICH, cmd)
+	if err != nil {
+		return false
+	}
+	if strings.TrimSpace(output) == "" {
+		return false
+	}
+	return true
 }
 
 func FmtStringArgs(args ...string) string {

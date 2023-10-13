@@ -1,6 +1,14 @@
 package types
 
 const (
+	DEFAULT_DENON       = "uhby"
+	DEFAULT_CHAIN_ID    = "coeus"
+	DEFAULT_KEY_PHRASE  = "88888888"
+	DEFAULT_NODE_CMD    = "coeusd"
+	DEFAULT_CONFIG_FILE = "config.yml"
+)
+
+const (
 	EXEC_CMD_WHICH = "which"
 	EXEC_CMD_COPY  = "cp"
 	EXEC_CMD_SHELL = "sh"
@@ -11,7 +19,9 @@ const (
 )
 
 const (
-	EXPECT_COMMAND = "expect"
+	COMMAND_NAME_EXPECT  = "expect"
+	COMMAND_NAME_APT     = "apt"
+	COMMAND_NAME_APT_GET = "apt-get"
 )
 
 const (
