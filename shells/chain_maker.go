@@ -170,3 +170,7 @@ func (s *ChainMaker) MakeCmdLineCopyKeysFile(src, dest string) string {
 func (s *ChainMaker) MakeCmdLineMkdirKeyringFile(strHome string) string {
 	return fmt.Sprintf("%s -p %s/keyring-file", s.MkdirCmd(), strHome)
 }
+
+func (s *ChainMaker) MakeCmdLineShowNodeId(strHome string) string {
+	return fmt.Sprintf("%s tendermint show-node-id --home %s", s.NodeCmd(), strHome)
+}

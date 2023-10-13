@@ -39,7 +39,12 @@ func (m *CmdExecutor) Shell(cmdline string) (output string, err error) {
 	var args []string
 	args = append(args, types.EXEC_SHELL_ARG)
 	args = append(args, cmdline)
-	return m.Run(types.EXEC_CMD_SHELL, args...)
+	output, err = m.Run(types.EXEC_CMD_SHELL, args...)
+	if err != nil {
+		return output, err
+	}
+	output = strings.TrimSpace(output)
+	return
 }
 
 func (m *CmdExecutor) Which(cmd string) bool {

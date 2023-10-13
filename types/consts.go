@@ -21,7 +21,7 @@ const (
 
 const (
 	COMMAND_NAME_EXPECT  = "expect"
-	COMMAND_NAME_APT     = "apt"
+	COMMAND_NAME_YUM     = "yum"
 	COMMAND_NAME_APT_GET = "apt-get"
 )
 

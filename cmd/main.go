@@ -124,12 +124,18 @@ var initCmd = &cli.Command{
 		cmd := utils.NewCmdExecutor(false)
 		ok := cmd.Which(types.COMMAND_NAME_EXPECT)
 		if !ok {
-			if !cmd.Which(types.COMMAND_NAME_APT_GET) && !cmd.Which(types.COMMAND_NAME_APT) {
+			if cmd.Which(types.COMMAND_NAME_APT_GET) {
+				_, err := cmd.Shell("sudo apt-get install -y expect")
+				if err != nil {
+					return err
+				}
+			} else if cmd.Which(types.COMMAND_NAME_YUM) {
+				_, err := cmd.Shell("sudo yum install -y expect")
+				if err != nil {
+					return err
+				}
+			} else {
 				return fmt.Errorf("%s command not found, please install expect first", types.COMMAND_NAME_EXPECT)
-			}
-			_, err := cmd.Shell("sudo apt-get install -y expect")
-			if err != nil {
-				return err
 			}
 		}
 		return nil

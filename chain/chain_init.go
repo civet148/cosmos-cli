@@ -1,6 +1,7 @@
 package chain
 
 import (
+	"fmt"
 	"github.com/civet148/cosmos-cli/api"
 	"github.com/civet148/cosmos-cli/shells"
 	"github.com/civet148/cosmos-cli/types"
@@ -20,12 +21,19 @@ type InitOption struct {
 	KeyringBackend string // keyring backend
 }
 
+type NodePeer struct {
+	Name            string
+	Peer            string
+	PersistentPeers []string
+}
+
 type InitChain struct {
-	option            *InitOption //init option
-	nNodeCount        int         //node count
-	strNode0Home      string      //node0 home
-	strNode0Validator string      //node0 validator
-	strKeyFile        string      //key file to save
+	peers             map[string]*NodePeer //node peer information
+	option            *InitOption          //init option
+	nNodeCount        int                  //node count
+	strNode0Home      string               //node0 home
+	strNode0Validator string               //node0 validator
+	strKeyFile        string               //key file to save
 }
 
 func NewInitChain(opt *InitOption) api.ManagerApi {
@@ -34,6 +42,7 @@ func NewInitChain(opt *InitOption) api.ManagerApi {
 	}
 	return &InitChain{
 		option:     opt,
+		peers:      make(map[string]*NodePeer),
 		strKeyFile: types.EXPORT_KEY_FILE,
 	}
 }
@@ -47,7 +56,12 @@ func (c *InitChain) Run() error {
 	if err != nil {
 		return err
 	}
-	return c.initNodes(ic)
+	err = c.initNodes(ic)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *InitChain) parseConfig() (*types.IgniteConfig, error) {
@@ -162,17 +176,6 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 				log.Errorf(err.Error())
 				return
 			}
-
-			//show validator account key
-			var strPrivateKey string
-			cmdline = maker.MakeCmdLineKeysShow(v.Name, v.Home)
-			strPrivateKey, err = cmd.Shell(cmdline)
-			if err != nil {
-				log.Errorf(err.Error())
-				return
-			}
-			log.Printf("------------------------------- validator %s private key -------------------------------", v.Name)
-			log.Printf(strPrivateKey)
 		}
 
 		//add all validator genesis account to first validator
@@ -217,6 +220,20 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 				return
 			}
 		}
+		//get node id and make peer info
+		var strNodeId string
+		cmdline = maker.MakeCmdLineShowNodeId(v.Home)
+		strNodeId, err = cmd.Shell(cmdline)
+		if err != nil {
+			log.Errorf(err.Error())
+			return
+		}
+		np := &NodePeer{
+			Name: v.Name,
+			Peer: fmt.Sprintf("%s@%s", strNodeId, ic.GetValidatorHost(v.Name)),
+		}
+		c.peers[v.Name] = np
+		log.Infof("validator [%s] p2p peer [%+v]", v.Name, np.Peer)
 	}
 
 	//collect gentxs for first validator
@@ -232,8 +249,8 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 		log.Errorf(err.Error())
 		return
 	}
-	//sync genesis.json to every validator except first validator
 	for _, v := range ic.Validators {
+		//sync genesis.json to every validator except first validator
 		if v.Name != c.strNode0Validator {
 			cmdline = maker.MakeCmdLineCopyGenesisFile(c.strNode0Home, v.Home)
 			_, err = cmd.Shell(cmdline)
@@ -242,6 +259,24 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 				return
 			}
 		}
+		//update persistent peers
+		np := c.peers[v.Name]
+		if np == nil {
+			return log.Errorf("validator %s peer info not found", v.Name)
+		}
+		for _, p := range c.peers {
+			if p.Name != v.Name {
+				np.PersistentPeers = append(np.PersistentPeers, p.Peer)
+			}
+		}
 	}
+	log.Json("map peers", c.peers)
 	return nil
+}
+
+func (c *InitChain) updateConfigurations(ic *types.IgniteConfig) (err error) {
+	//for _, v := range ic.Validators {
+	//
+	//}
+	return
 }

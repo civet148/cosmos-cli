@@ -1,6 +1,10 @@
 package types
 
-import "strings"
+import (
+	"fmt"
+	"net/url"
+	"strings"
+)
 
 type IgniteConfig struct {
 	Version  int `yaml:"version"`
@@ -105,6 +109,23 @@ func (m IgniteConfig) GetAccountBalances(name string) string {
 		}
 	}
 	return ""
+}
+
+func (m IgniteConfig) GetValidatorHost(strValidatorName string) string {
+	for _, v := range m.Validators {
+		if v.Name == strValidatorName {
+			return fmt.Sprintf("%s:%s", v.IP, parseP2PPort(v.Config.P2P.Laddr))
+		}
+	}
+	return "<N/A>"
+}
+
+func parseP2PPort(strAddr string) string {
+	u, err := url.Parse(strAddr)
+	if err != nil {
+		return COSMOS_P2P_PORT
+	}
+	return u.Port()
 }
 
 type CosmosConfig struct {
