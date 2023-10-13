@@ -55,6 +55,130 @@ validators:
      instrumentation:
          prometheus: true
          prometheus_listen_addr: ":26660"
+- name: validator1
+  bonded: 200000000000uhby
+  home: "/data/node1"
+  ip: "172.20.0.101"
+  app:
+    minimum-gas-prices: "0.000002ushby"
+    api:
+      enable: true
+      enabled-unsafe-cors: true
+      address: "tcp://0.0.0.0:1317"
+    grpc:
+      enable: true
+      address: "0.0.0.0:9090"
+    grpc-web:
+      address: "0.0.0.0:9091"
+      enable: true
+      enable-unsafe-cors: true
+  config:
+    consensus:
+      timeout_commit: "5s"
+    proxy_app: "tcp://0.0.0.0:26658"
+    moniker: "node1"
+    rpc:
+      laddr: "tcp://0.0.0.0:26657"
+    p2p:
+      laddr: "tcp://0.0.0.0:26656"
+      persistent_peers: ""
+      allow_duplicate_ip: true
+    instrumentation:
+      prometheus: true
+      prometheus_listen_addr: ":26660"
+- name: validator2
+  bonded: 200000000000uhby
+  home: "/data/node2"
+  ip: "172.20.0.102"
+  app:
+    minimum-gas-prices: "0.000002ushby"
+    api:
+      enable: true
+      enabled-unsafe-cors: true
+      address: "tcp://0.0.0.0:1317"
+    grpc:
+      enable: true
+      address: "0.0.0.0:9090"
+    grpc-web:
+      address: "0.0.0.0:9091"
+      enable: true
+      enable-unsafe-cors: true
+  config:
+    consensus:
+      timeout_commit: "5s"
+    proxy_app: "tcp://0.0.0.0:26658"
+    moniker: "node2"
+    rpc:
+      laddr: "tcp://0.0.0.0:26657"
+    p2p:
+      laddr: "tcp://0.0.0.0:26656"
+      persistent_peers: ""
+      allow_duplicate_ip: true
+    instrumentation:
+      prometheus: true
+      prometheus_listen_addr: ":26660"
+- name: validator3
+  bonded: 200000000000uhby
+  home: "/data/node3"
+  ip: "172.20.0.103"
+  app:
+    minimum-gas-prices: "0.000002ushby"
+    api:
+      enable: true
+      enabled-unsafe-cors: true
+      address: "tcp://0.0.0.0:1317"
+    grpc:
+      enable: true
+      address: "0.0.0.0:9090"
+    grpc-web:
+      address: "0.0.0.0:9091"
+      enable: true
+      enable-unsafe-cors: true
+  config:
+    consensus:
+      timeout_commit: "5s"
+    proxy_app: "tcp://0.0.0.0:26658"
+    moniker: "node3"
+    rpc:
+      laddr: "tcp://0.0.0.0:26657"
+    p2p:
+      laddr: "tcp://0.0.0.0:26656"
+      persistent_peers: ""
+      allow_duplicate_ip: true
+    instrumentation:
+      prometheus: true
+      prometheus_listen_addr: ":26660"
+- name: validator4
+  bonded: 200000000000uhby
+  home: "/data/node4"
+  ip: "172.20.0.104"
+  app:
+    minimum-gas-prices: "0.000002ushby"
+    api:
+      enable: true
+      enabled-unsafe-cors: true
+      address: "tcp://0.0.0.0:1317"
+    grpc:
+      enable: true
+      address: "0.0.0.0:9090"
+    grpc-web:
+      address: "0.0.0.0:9091"
+      enable: true
+      enable-unsafe-cors: true
+  config:
+    consensus:
+      timeout_commit: "5s"
+    proxy_app: "tcp://0.0.0.0:26658"
+    moniker: "node4"
+    rpc:
+      laddr: "tcp://0.0.0.0:26657"
+    p2p:
+      laddr: "tcp://0.0.0.0:26656"
+      persistent_peers: ""
+      allow_duplicate_ip: true
+    instrumentation:
+      prometheus: true
+      prometheus_listen_addr: ":26660"
 genesis:
   app_state:
     staking:

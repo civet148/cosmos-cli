@@ -27,7 +27,7 @@ const (
 
 const (
 	CMD_FLAG_NAME_CONFIG        = "config"
-	CMD_FLAG_NAME_IGNITE_CMD    = "ignite-cmd"
+	CMD_FLAG_NAME_DEBUG         = "debug"
 	CMD_FLAG_NAME_NODE_CMD      = "node-cmd"
 	CMD_FLAG_NAME_DEFAULT_DENOM = "default-denom"
 	CMD_FLAG_NAME_CHAIN_ID      = "chain-id"
@@ -84,6 +84,10 @@ var initCmd = &cli.Command{
 	Usage:     "set up cosmos nodes initializer",
 	ArgsUsage: "",
 	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:  CMD_FLAG_NAME_DEBUG,
+			Usage: "debug mode on",
+		},
 		&cli.StringFlag{
 			Name:    CMD_FLAG_NAME_CONFIG,
 			Usage:   "config file path",
@@ -132,9 +136,9 @@ var initCmd = &cli.Command{
 	},
 	Action: func(cctx *cli.Context) error {
 		opt := &chain.InitOption{
+			Debug:          cctx.Bool(CMD_FLAG_NAME_DEBUG),
 			KeyringBackend: types.KEYRING_BACKEND,
 			ConfigPath:     cctx.String(CMD_FLAG_NAME_CONFIG),
-			IgniteCmd:      cctx.String(CMD_FLAG_NAME_IGNITE_CMD),
 			NodeCmd:        cctx.String(CMD_FLAG_NAME_NODE_CMD),
 			DefaultDenom:   cctx.String(CMD_FLAG_NAME_DEFAULT_DENOM),
 			ChainID:        cctx.String(CMD_FLAG_NAME_CHAIN_ID),

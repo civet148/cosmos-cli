@@ -12,6 +12,7 @@ const (
 	EXEC_CMD_WHICH = "which"
 	EXEC_CMD_COPY  = "cp"
 	EXEC_CMD_SHELL = "sh"
+	EXEC_CMD_MKDIR = "mkdir"
 )
 
 const (

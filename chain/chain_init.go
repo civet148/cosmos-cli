@@ -11,7 +11,7 @@ import (
 )
 
 type InitOption struct {
-	IgniteCmd      string // ignite command file path
+	Debug          bool   // debug mode on
 	ConfigPath     string // config file path
 	NodeCmd        string // chain node command
 	DefaultDenom   string // default denom
@@ -123,8 +123,8 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 	opt := c.option
 	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase, opt.KeyringBackend)
 
-	cmd := utils.NewCmdExecutor(true)
-
+	cmd := utils.NewCmdExecutor(opt.Debug)
+	var reenter = true
 	for _, v := range ic.Validators {
 		err = os.RemoveAll(v.Home)
 		if err != nil {
@@ -139,30 +139,40 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 			return
 		}
 		//add all validator account key to first validator keyring
-		cmdline = maker.MakeCmdLineKeysAdd(v.Name, c.strNode0Home)
+		cmdline = maker.MakeCmdLineKeysAdd(v.Name, c.strNode0Home, reenter)
 		_, err = cmd.Shell(cmdline)
 		if err != nil {
 			log.Errorf(err.Error())
 			return
 		}
-
+		reenter = false
 		if v.Name != c.strNode0Validator {
-			//export validator account key to file from first validator keyring, eg. /tmp/account.key
-			cmdline = maker.MakeCmdLineKeysExport(v.Name, c.strNode0Home, c.strKeyFile)
+
+			//make keyring file directory
+			cmdline = maker.MakeCmdLineMkdirKeyringFile(v.Home)
 			_, err = cmd.Shell(cmdline)
 			if err != nil {
 				log.Errorf(err.Error())
 				return
 			}
-			//import validator account key from file, eg. /tmp/account.key
-			cmdline = maker.MakeCmdLineKeysImport(v.Name, v.Home, c.strKeyFile)
+			//copy keys file to current validator keyring dir
+			cmdline = maker.MakeCmdLineCopyKeysFile(c.strNode0Home, v.Home)
 			_, err = cmd.Shell(cmdline)
 			if err != nil {
 				log.Errorf(err.Error())
 				return
 			}
-			//remove template key file
-			os.Remove(c.strKeyFile)
+
+			//show validator account key
+			var strPrivateKey string
+			cmdline = maker.MakeCmdLineKeysShow(v.Name, v.Home)
+			strPrivateKey, err = cmd.Shell(cmdline)
+			if err != nil {
+				log.Errorf(err.Error())
+				return
+			}
+			log.Printf("------------------------------- validator %s private key -------------------------------", v.Name)
+			log.Printf(strPrivateKey)
 		}
 
 		//add all validator genesis account to first validator
@@ -190,15 +200,17 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 			log.Errorf(err.Error())
 			return
 		}
+		//collect gentxs for every validator
+		cmdline = maker.MakeCmdLineCollectGenTxs(v.Home)
+		_, err = cmd.Shell(cmdline)
+		if err != nil {
+			log.Errorf(err.Error())
+			return
+		}
+
 		if v.Name != c.strNode0Validator {
 			//copy other gentx to first validator
 			cmdline = maker.MakeCmdLineCopyGenTxJSON(v.Home, c.strNode0Home)
-			_, err = cmd.Shell(cmdline)
-			if err != nil {
-				log.Errorf(err.Error())
-				return
-			}
-			cmdline := maker.MakeCmdLineCopyGenesisFile(v.Home, c.strNode0Home)
 			_, err = cmd.Shell(cmdline)
 			if err != nil {
 				log.Errorf(err.Error())
@@ -219,6 +231,17 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 	if err != nil {
 		log.Errorf(err.Error())
 		return
+	}
+	//sync genesis.json to every validator except first validator
+	for _, v := range ic.Validators {
+		if v.Name != c.strNode0Validator {
+			cmdline = maker.MakeCmdLineCopyGenesisFile(c.strNode0Home, v.Home)
+			_, err = cmd.Shell(cmdline)
+			if err != nil {
+				log.Errorf(err.Error())
+				return
+			}
+		}
 	}
 	return nil
 }
