@@ -166,7 +166,8 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 		}
 
 		//add all validator genesis account to first validator
-		cmdline = maker.MakeCmdLineAddGenesisAccount(v.Name, c.strNode0Home, v.Bonded)
+		balances := ic.GetAccountBalances(v.Name)
+		cmdline = maker.MakeCmdLineAddGenesisAccount(v.Name, c.strNode0Home, balances)
 		_, err = cmd.Shell(cmdline)
 		if err != nil {
 			log.Errorf(err.Error())
@@ -174,7 +175,7 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 		}
 		if v.Name != c.strNode0Validator {
 			//add self validator genesis account
-			cmdline = maker.MakeCmdLineAddGenesisAccount(v.Name, v.Home, v.Bonded)
+			cmdline = maker.MakeCmdLineAddGenesisAccount(v.Name, v.Home, balances)
 			_, err = cmd.Shell(cmdline)
 			if err != nil {
 				log.Errorf(err.Error())

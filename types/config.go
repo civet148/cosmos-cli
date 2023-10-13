@@ -1,5 +1,7 @@
 package types
 
+import "strings"
+
 type IgniteConfig struct {
 	Version  int `yaml:"version"`
 	Accounts []struct {
@@ -94,6 +96,15 @@ type IgniteConfig struct {
 			} `yaml:"crisis"`
 		} `yaml:"app_state"`
 	} `yaml:"genesis"`
+}
+
+func (m IgniteConfig) GetAccountBalances(name string) string {
+	for _, a := range m.Accounts {
+		if a.Name == name {
+			return strings.Join(a.Coins, ",")
+		}
+	}
+	return ""
 }
 
 type CosmosConfig struct {
