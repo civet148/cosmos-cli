@@ -7,8 +7,10 @@ import (
 	"github.com/civet148/cosmos-cli/types"
 	"github.com/civet148/cosmos-cli/utils"
 	"github.com/civet148/log"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"os"
+	"strings"
 )
 
 type InitOption struct {
@@ -47,25 +49,28 @@ func NewInitChain(opt *InitOption) api.ManagerApi {
 	}
 }
 
-func (c *InitChain) Run() error {
-	ic, err := c.parseConfig()
+func (m *InitChain) Run() error {
+	ic, err := m.parseConfig()
 	if err != nil {
 		return err
 	}
-	err = c.checkConfig(ic)
+	err = m.checkConfig(ic)
 	if err != nil {
 		return err
 	}
-	err = c.initNodes(ic)
+	err = m.initNodes(ic)
 	if err != nil {
 		return err
 	}
-
+	err = m.updateConfig(ic)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (c *InitChain) parseConfig() (*types.IgniteConfig, error) {
-	strConfig := c.option.ConfigPath
+func (m *InitChain) parseConfig() (*types.IgniteConfig, error) {
+	strConfig := m.option.ConfigPath
 	data, err := os.ReadFile(strConfig)
 	if err != nil {
 		return nil, log.Errorf("open config file %s error [%v]", strConfig, err)
@@ -79,7 +84,7 @@ func (c *InitChain) parseConfig() (*types.IgniteConfig, error) {
 	return &ic, nil
 }
 
-func (c *InitChain) checkConfig(ic *types.IgniteConfig) error {
+func (m *InitChain) checkConfig(ic *types.IgniteConfig) error {
 
 	if len(ic.Validators) == 0 {
 		return log.Errorf("validators must not be empty")
@@ -128,13 +133,13 @@ func (c *InitChain) checkConfig(ic *types.IgniteConfig) error {
 			return log.Errorf("account [%v] coins is empty", v.Name)
 		}
 	}
-	c.strNode0Home = ic.Validators[0].Home
-	c.strNode0Validator = ic.Validators[0].Name
+	m.strNode0Home = ic.Validators[0].Home
+	m.strNode0Validator = ic.Validators[0].Name
 	return nil
 }
 
-func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
-	opt := c.option
+func (m *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
+	opt := m.option
 	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase, opt.KeyringBackend)
 
 	cmd := utils.NewCmdExecutor(opt.Debug)
@@ -153,14 +158,14 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 			return
 		}
 		//add all validator account key to first validator keyring
-		cmdline = maker.MakeCmdLineKeysAdd(v.Name, c.strNode0Home, reenter)
+		cmdline = maker.MakeCmdLineKeysAdd(v.Name, m.strNode0Home, reenter)
 		_, err = cmd.Shell(cmdline)
 		if err != nil {
 			log.Errorf(err.Error())
 			return
 		}
 		reenter = false
-		if v.Name != c.strNode0Validator {
+		if v.Name != m.strNode0Validator {
 
 			//make keyring file directory
 			cmdline = maker.MakeCmdLineMkdirKeyringFile(v.Home)
@@ -170,7 +175,7 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 				return
 			}
 			//copy keys file to current validator keyring dir
-			cmdline = maker.MakeCmdLineCopyKeysFile(c.strNode0Home, v.Home)
+			cmdline = maker.MakeCmdLineCopyKeysFile(m.strNode0Home, v.Home)
 			_, err = cmd.Shell(cmdline)
 			if err != nil {
 				log.Errorf(err.Error())
@@ -180,13 +185,13 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 
 		//add all validator genesis account to first validator
 		balances := ic.GetAccountBalances(v.Name)
-		cmdline = maker.MakeCmdLineAddGenesisAccount(v.Name, c.strNode0Home, balances)
+		cmdline = maker.MakeCmdLineAddGenesisAccount(v.Name, m.strNode0Home, balances)
 		_, err = cmd.Shell(cmdline)
 		if err != nil {
 			log.Errorf(err.Error())
 			return
 		}
-		if v.Name != c.strNode0Validator {
+		if v.Name != m.strNode0Validator {
 			//add self validator genesis account
 			cmdline = maker.MakeCmdLineAddGenesisAccount(v.Name, v.Home, balances)
 			_, err = cmd.Shell(cmdline)
@@ -211,9 +216,9 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 			return
 		}
 
-		if v.Name != c.strNode0Validator {
+		if v.Name != m.strNode0Validator {
 			//copy other gentx to first validator
-			cmdline = maker.MakeCmdLineCopyGenTxJSON(v.Home, c.strNode0Home)
+			cmdline = maker.MakeCmdLineCopyGenTxJSON(v.Home, m.strNode0Home)
 			_, err = cmd.Shell(cmdline)
 			if err != nil {
 				log.Errorf(err.Error())
@@ -232,18 +237,17 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 			Name: v.Name,
 			Peer: fmt.Sprintf("%s@%s", strNodeId, ic.GetValidatorHost(v.Name)),
 		}
-		c.peers[v.Name] = np
-		log.Infof("validator [%s] p2p peer [%+v]", v.Name, np.Peer)
+		m.peers[v.Name] = np
 	}
 
 	//collect gentxs for first validator
-	cmdline := maker.MakeCmdLineCollectGenTxs(c.strNode0Home)
+	cmdline := maker.MakeCmdLineCollectGenTxs(m.strNode0Home)
 	_, err = cmd.Shell(cmdline)
 	if err != nil {
 		log.Errorf(err.Error())
 		return
 	}
-	cmdline = maker.MakeCmdLineValidateGenesis(c.strNode0Home)
+	cmdline = maker.MakeCmdLineValidateGenesis(m.strNode0Home)
 	_, err = cmd.Shell(cmdline)
 	if err != nil {
 		log.Errorf(err.Error())
@@ -251,8 +255,8 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 	}
 	for _, v := range ic.Validators {
 		//sync genesis.json to every validator except first validator
-		if v.Name != c.strNode0Validator {
-			cmdline = maker.MakeCmdLineCopyGenesisFile(c.strNode0Home, v.Home)
+		if v.Name != m.strNode0Validator {
+			cmdline = maker.MakeCmdLineCopyGenesisFile(m.strNode0Home, v.Home)
 			_, err = cmd.Shell(cmdline)
 			if err != nil {
 				log.Errorf(err.Error())
@@ -260,23 +264,103 @@ func (c *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 			}
 		}
 		//update persistent peers
-		np := c.peers[v.Name]
+		np := m.peers[v.Name]
 		if np == nil {
 			return log.Errorf("validator %s peer info not found", v.Name)
 		}
-		for _, p := range c.peers {
+		for _, p := range m.peers {
 			if p.Name != v.Name {
 				np.PersistentPeers = append(np.PersistentPeers, p.Peer)
 			}
 		}
 	}
-	log.Json("map peers", c.peers)
 	return nil
 }
 
-func (c *InitChain) updateConfigurations(ic *types.IgniteConfig) (err error) {
-	//for _, v := range ic.Validators {
-	//
-	//}
+func (m *InitChain) updateConfig(ic *types.IgniteConfig) (err error) {
+	for _, v := range ic.Validators {
+		vipApp := viper.New()
+		strPathApp := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_APP)
+		vipApp.SetConfigFile(strPathApp)
+		vipApp.SetConfigType("toml")
+		if err = vipApp.ReadInConfig(); err != nil {
+			return log.Errorf("load config [%s] error [%s]", strPathApp, err.Error())
+		}
+
+		//if v.App.MinimumGasPrices != "" {
+		vipApp.Set("minimum-gas-prices", v.App.MinimumGasPrices)
+		//}
+		if v.App.API.Enable {
+			vipApp.Set("api.enable", v.App.API.Enable)
+		}
+		if v.App.API.Address != "" {
+			vipApp.Set("api.address", v.App.API.Address)
+		}
+		if v.App.API.EnabledUnsafeCors {
+			vipApp.Set("api.enabled-unsafe-cors", v.App.API.EnabledUnsafeCors)
+		}
+		if v.App.Grpc.Enable {
+			vipApp.Set("grpc.enable", v.App.Grpc.Enable)
+		}
+		if v.App.Grpc.Address != "" {
+			vipApp.Set("grpc.address", v.App.Grpc.Address)
+		}
+		if v.App.GrpcWeb.Enable {
+			vipApp.Set("grpc-web.enable", v.App.GrpcWeb.Enable)
+		}
+		if v.App.GrpcWeb.Address != "" {
+			vipApp.Set("grpc-web.address", v.App.GrpcWeb.Address)
+		}
+		if v.App.GrpcWeb.EnableUnsafeCors {
+			vipApp.Set("grpc-web.enable-unsafe-cors", v.App.GrpcWeb.EnableUnsafeCors)
+		}
+
+		//save to app.toml file
+		if err = vipApp.WriteConfig(); err != nil {
+			return log.Errorf(err.Error())
+		}
+
+		vipConfig := viper.New()
+		strPathConfig := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_CONFIG)
+		vipConfig.SetConfigFile(strPathConfig)
+		vipConfig.SetConfigType("toml")
+		if err = vipConfig.ReadInConfig(); err != nil {
+			return log.Errorf("load config [%s] error [%s]", strPathConfig, err.Error())
+		}
+
+		if v.Config.Moniker != "" {
+			vipConfig.Set("moniker", v.Config.Moniker)
+		}
+		if v.Config.ProxyApp != "" {
+			vipConfig.Set("proxy_app", v.Config.ProxyApp)
+		}
+		if v.Config.Consensus.TimeoutCommit != "" {
+			vipConfig.Set("consensus.timeout_commit", v.Config.Consensus.TimeoutCommit)
+		}
+		if v.Config.RPC.Laddr != "" {
+			vipConfig.Set("rpc.laddr", v.Config.RPC.Laddr)
+		}
+		if v.Config.P2P.Laddr != "" {
+			vipConfig.Set("p2p.laddr", v.Config.P2P.Laddr)
+		}
+		if v.Config.P2P.AllowDuplicateIP {
+			vipConfig.Set("p2p.allow_duplicate_ip", v.Config.P2P.AllowDuplicateIP)
+		}
+		if v.Config.Instrumentation.Prometheus {
+			vipConfig.Set("instrumentation.prometheus", v.Config.Instrumentation.Prometheus)
+		}
+		if v.Config.Instrumentation.PrometheusListenAddr != "" {
+			vipConfig.Set("instrumentation.prometheus_listen_addr", v.Config.Instrumentation.PrometheusListenAddr)
+		}
+		//update validator p2p persistent peers
+		if np, ok := m.peers[v.Name]; ok {
+			strPeers := strings.Join(np.PersistentPeers, ",")
+			vipConfig.Set("p2p.persistent_peers", strPeers)
+		}
+		//save to config.toml file
+		if err = vipConfig.WriteConfig(); err != nil {
+			return log.Errorf(err.Error())
+		}
+	}
 	return
 }

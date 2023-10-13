@@ -36,3 +36,10 @@ const (
 	EXPORT_KEY_FILE = "/tmp/account.key"
 	KEYRING_BACKEND = "file"
 )
+
+const (
+	FILE_NAME_APP     = "app.toml"
+	FILE_NAME_CONFIG  = "config.toml"
+	FILE_NAME_GENESIS = "genesis.json"
+	CONFIG_SUBPATH    = "config"
+)

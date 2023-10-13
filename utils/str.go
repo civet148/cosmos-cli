@@ -4,6 +4,7 @@ import (
 	"github.com/civet148/cosmos-cli/types"
 	"github.com/civet148/log"
 	"net/url"
+	"path/filepath"
 )
 
 // ParseP2PPort parse comsos p2p port from listen address. eg. "tcp://0.0.0.0:26656"
@@ -14,4 +15,8 @@ func ParseP2PPort(strAddr string) string {
 		return types.COSMOS_P2P_PORT
 	}
 	return u.Port()
+}
+
+func MakeCosmosConfigPath(strHome, strFileName string) string {
+	return filepath.Join(strHome, types.CONFIG_SUBPATH, strFileName)
 }
