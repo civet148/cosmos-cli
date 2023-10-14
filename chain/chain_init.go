@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -62,7 +63,19 @@ func (m *InitChain) Run() error {
 	if err != nil {
 		return err
 	}
-	err = m.updateConfig(ic)
+	err = m.updateAppConfig(ic)
+	if err != nil {
+		return err
+	}
+	err = m.updateCosmosConfig(ic)
+	if err != nil {
+		return err
+	}
+	err = m.updateGenesisConfig(ic)
+	if err != nil {
+		return err
+	}
+	err = m.syncGenesisFile(ic)
 	if err != nil {
 		return err
 	}
@@ -254,15 +267,6 @@ func (m *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 		return
 	}
 	for _, v := range ic.Validators {
-		//sync genesis.json to every validator except first validator
-		if v.Name != m.strNode0Validator {
-			cmdline = maker.MakeCmdLineCopyGenesisFile(m.strNode0Home, v.Home)
-			_, err = cmd.Shell(cmdline)
-			if err != nil {
-				log.Errorf(err.Error())
-				return
-			}
-		}
 		//update persistent peers
 		np := m.peers[v.Name]
 		if np == nil {
@@ -277,90 +281,212 @@ func (m *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 	return nil
 }
 
-func (m *InitChain) updateConfig(ic *types.IgniteConfig) (err error) {
+func (m *InitChain) updateAppConfig(ic *types.IgniteConfig) (err error) {
 	for _, v := range ic.Validators {
-		vipApp := viper.New()
-		strPathApp := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_APP)
-		vipApp.SetConfigFile(strPathApp)
-		vipApp.SetConfigType("toml")
-		if err = vipApp.ReadInConfig(); err != nil {
-			return log.Errorf("load config [%s] error [%s]", strPathApp, err.Error())
+		vip := viper.New()
+		strPath := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_APP)
+		vip.SetConfigFile(strPath)
+		vip.SetConfigType("toml")
+		if err = vip.ReadInConfig(); err != nil {
+			return log.Errorf("load config [%s] error [%s]", strPath, err.Error())
 		}
 
 		//if v.App.MinimumGasPrices != "" {
-		vipApp.Set("minimum-gas-prices", v.App.MinimumGasPrices)
+		vip.Set("minimum-gas-prices", v.App.MinimumGasPrices)
 		//}
 		if v.App.API.Enable {
-			vipApp.Set("api.enable", v.App.API.Enable)
+			vip.Set("api.enable", v.App.API.Enable)
 		}
 		if v.App.API.Address != "" {
-			vipApp.Set("api.address", v.App.API.Address)
+			vip.Set("api.address", v.App.API.Address)
 		}
 		if v.App.API.EnabledUnsafeCors {
-			vipApp.Set("api.enabled-unsafe-cors", v.App.API.EnabledUnsafeCors)
+			vip.Set("api.enabled-unsafe-cors", v.App.API.EnabledUnsafeCors)
 		}
 		if v.App.Grpc.Enable {
-			vipApp.Set("grpc.enable", v.App.Grpc.Enable)
+			vip.Set("grpc.enable", v.App.Grpc.Enable)
 		}
 		if v.App.Grpc.Address != "" {
-			vipApp.Set("grpc.address", v.App.Grpc.Address)
+			vip.Set("grpc.address", v.App.Grpc.Address)
 		}
 		if v.App.GrpcWeb.Enable {
-			vipApp.Set("grpc-web.enable", v.App.GrpcWeb.Enable)
+			vip.Set("grpc-web.enable", v.App.GrpcWeb.Enable)
 		}
 		if v.App.GrpcWeb.Address != "" {
-			vipApp.Set("grpc-web.address", v.App.GrpcWeb.Address)
+			vip.Set("grpc-web.address", v.App.GrpcWeb.Address)
 		}
 		if v.App.GrpcWeb.EnableUnsafeCors {
-			vipApp.Set("grpc-web.enable-unsafe-cors", v.App.GrpcWeb.EnableUnsafeCors)
+			vip.Set("grpc-web.enable-unsafe-cors", v.App.GrpcWeb.EnableUnsafeCors)
 		}
 
 		//save to app.toml file
-		if err = vipApp.WriteConfig(); err != nil {
-			return log.Errorf(err.Error())
-		}
-
-		vipConfig := viper.New()
-		strPathConfig := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_CONFIG)
-		vipConfig.SetConfigFile(strPathConfig)
-		vipConfig.SetConfigType("toml")
-		if err = vipConfig.ReadInConfig(); err != nil {
-			return log.Errorf("load config [%s] error [%s]", strPathConfig, err.Error())
-		}
-
-		if v.Config.Moniker != "" {
-			vipConfig.Set("moniker", v.Config.Moniker)
-		}
-		if v.Config.ProxyApp != "" {
-			vipConfig.Set("proxy_app", v.Config.ProxyApp)
-		}
-		if v.Config.Consensus.TimeoutCommit != "" {
-			vipConfig.Set("consensus.timeout_commit", v.Config.Consensus.TimeoutCommit)
-		}
-		if v.Config.RPC.Laddr != "" {
-			vipConfig.Set("rpc.laddr", v.Config.RPC.Laddr)
-		}
-		if v.Config.P2P.Laddr != "" {
-			vipConfig.Set("p2p.laddr", v.Config.P2P.Laddr)
-		}
-		if v.Config.P2P.AllowDuplicateIP {
-			vipConfig.Set("p2p.allow_duplicate_ip", v.Config.P2P.AllowDuplicateIP)
-		}
-		if v.Config.Instrumentation.Prometheus {
-			vipConfig.Set("instrumentation.prometheus", v.Config.Instrumentation.Prometheus)
-		}
-		if v.Config.Instrumentation.PrometheusListenAddr != "" {
-			vipConfig.Set("instrumentation.prometheus_listen_addr", v.Config.Instrumentation.PrometheusListenAddr)
-		}
-		//update validator p2p persistent peers
-		if np, ok := m.peers[v.Name]; ok {
-			strPeers := strings.Join(np.PersistentPeers, ",")
-			vipConfig.Set("p2p.persistent_peers", strPeers)
-		}
-		//save to config.toml file
-		if err = vipConfig.WriteConfig(); err != nil {
+		if err = vip.WriteConfig(); err != nil {
 			return log.Errorf(err.Error())
 		}
 	}
 	return
+}
+
+func (m *InitChain) updateCosmosConfig(ic *types.IgniteConfig) (err error) {
+	for _, v := range ic.Validators {
+
+		vip := viper.New()
+		strPath := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_CONFIG)
+		vip.SetConfigFile(strPath)
+		vip.SetConfigType("toml")
+		if err = vip.ReadInConfig(); err != nil {
+			return log.Errorf("load config [%s] error [%s]", strPath, err.Error())
+		}
+
+		if v.Config.Moniker != "" {
+			vip.Set("moniker", v.Config.Moniker)
+		}
+		if v.Config.ProxyApp != "" {
+			vip.Set("proxy_app", v.Config.ProxyApp)
+		}
+		if v.Config.Consensus.TimeoutCommit != "" {
+			vip.Set("consensus.timeout_commit", v.Config.Consensus.TimeoutCommit)
+		}
+		if v.Config.RPC.Laddr != "" {
+			vip.Set("rpc.laddr", v.Config.RPC.Laddr)
+		}
+		if v.Config.P2P.Laddr != "" {
+			vip.Set("p2p.laddr", v.Config.P2P.Laddr)
+		}
+		if v.Config.P2P.AllowDuplicateIP {
+			vip.Set("p2p.allow_duplicate_ip", v.Config.P2P.AllowDuplicateIP)
+		}
+		if v.Config.Instrumentation.Prometheus {
+			vip.Set("instrumentation.prometheus", v.Config.Instrumentation.Prometheus)
+		}
+		if v.Config.Instrumentation.PrometheusListenAddr != "" {
+			vip.Set("instrumentation.prometheus_listen_addr", v.Config.Instrumentation.PrometheusListenAddr)
+		}
+		//update validator p2p persistent peers
+		if np, ok := m.peers[v.Name]; ok {
+			strPeers := strings.Join(np.PersistentPeers, ",")
+			vip.Set("p2p.persistent_peers", strPeers)
+		}
+		//save to config.toml file
+		if err = vip.WriteConfig(); err != nil {
+			return log.Errorf(err.Error())
+		}
+	}
+	return
+}
+
+func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
+	for _, v := range ic.Validators {
+		vip := viper.New()
+		strPath := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_GENESIS)
+		vip.SetConfigFile(strPath)
+		vip.SetConfigType("json")
+		if err = vip.ReadInConfig(); err != nil {
+			return log.Errorf("load config [%s] error [%s]", strPath, err.Error())
+		}
+
+		/*
+		  app_state:
+		    staking:
+		      params:
+		        bond_denom: "uhby"
+		        max_validators: "500"
+		    mint:
+		      minter:
+		        annual_provisions: "0.000000000000000000"
+		        inflation: "0.013000000000000000"
+		      params:
+		        mint_denom: "ushby"
+		    gov:
+		      params:
+		        min_deposit:
+		          - amount: "10000000000"
+		            denom: "ushby"
+		    distribution:
+		      params:
+		        base_proposer_reward: "0.010000000000000000"
+		        bonus_proposer_reward: "0.040000000000000000"
+		        community_tax: "0.020000000000000000"
+		        withdraw_addr_enabled: true
+		    crisis:
+		      constant_fee:
+		        amount: "10000000000"
+		        denom: "ushby"
+		*/
+		gov := ic.Genesis.AppState.Gov
+		mint := ic.Genesis.AppState.Mint
+		crisis := ic.Genesis.AppState.Crisis
+		staking := ic.Genesis.AppState.Staking
+		distr := ic.Genesis.AppState.Distribution
+
+		//handle genesis app state of staking
+		if staking.Params.BondDenom != "" {
+			vip.Set("app_state.staking.params.bond_denom", staking.Params.BondDenom)
+		}
+		if staking.Params.MaxValidators != "" {
+			count, _ := strconv.Atoi(staking.Params.MaxValidators)
+			vip.Set("app_state.staking.params.max_validators", count)
+		}
+
+		//handle genesis app state of mint
+		if mint.Minter.AnnualProvisions != "" {
+			vip.Set("app_state.mint.minter.annual_provisions", mint.Minter.AnnualProvisions)
+		}
+		if mint.Minter.Inflation != "" {
+			vip.Set("app_state.mint.minter.inflation", mint.Minter.Inflation)
+		}
+		if mint.Params.MintDenom != "" {
+			vip.Set("app_state.mint.params.mint_denom", mint.Params.MintDenom)
+		}
+
+		//handle genesis app state of gov
+		if len(gov.Params.MinDeposit) != 0 {
+			vip.Set("app_state.gov.params.min_deposit", gov.Params.MinDeposit)
+		}
+
+		//handle genesis app state of distribution
+		if distr.Params.BaseProposerReward != "" {
+			vip.Set("app_state.distribution.params.base_proposer_reward", distr.Params.BaseProposerReward)
+		}
+		if distr.Params.BonusProposerReward != "" {
+			vip.Set("app_state.distribution.params.bonus_proposer_reward", distr.Params.BonusProposerReward)
+		}
+		if distr.Params.CommunityTax != "" {
+			vip.Set("app_state.distribution.params.community_tax", distr.Params.CommunityTax)
+		}
+		if distr.Params.WithdrawAddrEnabled {
+			vip.Set("app_state.distribution.params.withdraw_addr_enabled", distr.Params.WithdrawAddrEnabled)
+		}
+
+		//handle genesis app state of crisis
+		if crisis.ConstantFee.Amount != "" {
+			vip.Set("app_state.crisis.constant_fee.amount", crisis.ConstantFee.Amount)
+		}
+		if crisis.ConstantFee.Denom != "" {
+			vip.Set("app_state.crisis.constant_fee.denom", crisis.ConstantFee.Denom)
+		}
+
+		//save to genesis.json file
+		if err = vip.WriteConfig(); err != nil {
+			return log.Errorf(err.Error())
+		}
+	}
+	return nil
+}
+
+func (m *InitChain) syncGenesisFile(ic *types.IgniteConfig) (err error) {
+	opt := m.option
+	cmd := utils.NewCmdExecutor(opt.Debug)
+	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase, opt.KeyringBackend)
+	for _, v := range ic.Validators {
+		//sync genesis.json to every validator except first validator
+		if v.Name != m.strNode0Validator {
+			cmdline := maker.MakeCmdLineCopyGenesisFile(m.strNode0Home, v.Home)
+			_, err = cmd.Shell(cmdline)
+			if err != nil {
+				return log.Errorf(err.Error())
+			}
+		}
+	}
+	return nil
 }

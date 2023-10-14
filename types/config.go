@@ -7,99 +7,99 @@ import (
 )
 
 type IgniteConfig struct {
-	Version  int `yaml:"version"`
+	Version  int `yaml:"version" json:"version"`
 	Accounts []struct {
-		Name  string   `yaml:"name"`
-		Coins []string `yaml:"coins"`
-	} `yaml:"accounts"`
+		Name  string   `yaml:"name" json:"name,omitempty"`
+		Coins []string `yaml:"coins" json:"coins,omitempty"`
+	} `yaml:"accounts" json:"accounts"`
 	Client struct {
 		Openapi struct {
-			Path string `yaml:"path"`
-		} `yaml:"openapi"`
-	} `yaml:"client"`
+			Path string `yaml:"path" json:"path,omitempty"`
+		} `yaml:"openapi" json:"openapi"`
+	} `yaml:"client" json:"client"`
 	Validators []struct {
-		Name   string `yaml:"name"`
-		Bonded string `yaml:"bonded"`
-		Home   string `yaml:"home"`
-		IP     string `yaml:"ip"`
+		Name   string `yaml:"name" json:"name"`
+		Bonded string `yaml:"bonded" json:"bonded"`
+		Home   string `yaml:"home" json:"home"`
+		IP     string `yaml:"ip" json:"ip"`
 		App    struct {
-			MinimumGasPrices string `yaml:"minimum-gas-prices"`
+			MinimumGasPrices string `yaml:"minimum-gas-prices" json:"minimum-gas-prices"`
 			API              struct {
-				Enable            bool   `yaml:"enable"`
-				EnabledUnsafeCors bool   `yaml:"enabled-unsafe-cors"`
-				Address           string `yaml:"address"`
+				Enable            bool   `yaml:"enable" json:"enable,omitempty"`
+				EnabledUnsafeCors bool   `yaml:"enabled-unsafe-cors" json:"enabled-unsafe-cors,omitempty"`
+				Address           string `yaml:"address" json:"address,omitempty"`
 			} `yaml:"api"`
 			Grpc struct {
-				Enable  bool   `yaml:"enable"`
-				Address string `yaml:"address"`
+				Enable  bool   `yaml:"enable" json:"enable,omitempty"`
+				Address string `yaml:"address" json:"address,omitempty"`
 			} `yaml:"grpc"`
 			GrpcWeb struct {
-				Address          string `yaml:"address"`
-				Enable           bool   `yaml:"enable"`
-				EnableUnsafeCors bool   `yaml:"enable-unsafe-cors"`
-			} `yaml:"grpc-web"`
-		} `yaml:"app"`
+				Address          string `yaml:"address" json:"address,omitempty"`
+				Enable           bool   `yaml:"enable" json:"enable,omitempty"`
+				EnableUnsafeCors bool   `yaml:"enable-unsafe-cors" json:"enable-unsafe-cors,omitempty"`
+			} `yaml:"grpc-web" json:"grpc-web"`
+		} `yaml:"app" json:"app"`
 		Config struct {
 			Consensus struct {
-				TimeoutCommit string `yaml:"timeout_commit"`
-			} `yaml:"consensus"`
-			ProxyApp string `yaml:"proxy_app"`
-			Moniker  string `yaml:"moniker"`
+				TimeoutCommit string `yaml:"timeout_commit" json:"timeout_commit,omitempty"`
+			} `yaml:"consensus" json:"consensus"`
+			ProxyApp string `yaml:"proxy_app" json:"proxy_app"`
+			Moniker  string `yaml:"moniker" json:"moniker"`
 			RPC      struct {
-				Laddr string `yaml:"laddr"`
-			} `yaml:"rpc"`
+				Laddr string `yaml:"laddr" json:"laddr,omitempty"`
+			} `yaml:"rpc" json:"rpc"`
 			P2P struct {
-				Laddr            string `yaml:"laddr"`
-				PersistentPeers  string `yaml:"persistent_peers"`
-				AllowDuplicateIP bool   `yaml:"allow_duplicate_ip"`
-			} `yaml:"p2p"`
+				Laddr            string `yaml:"laddr" json:"laddr,omitempty"`
+				PersistentPeers  string `yaml:"persistent_peers" json:"persistent_peers,omitempty"`
+				AllowDuplicateIP bool   `yaml:"allow_duplicate_ip" json:"allow_duplicate_ip,omitempty"`
+			} `yaml:"p2p" json:"p2p"`
 			Instrumentation struct {
-				Prometheus           bool   `yaml:"prometheus"`
-				PrometheusListenAddr string `yaml:"prometheus_listen_addr"`
-			} `yaml:"instrumentation"`
-		} `yaml:"config"`
-	} `yaml:"validators"`
+				Prometheus           bool   `yaml:"prometheus" json:"prometheus"`
+				PrometheusListenAddr string `yaml:"prometheus_listen_addr" json:"prometheus_listen_addr"`
+			} `yaml:"instrumentation" json:"instrumentation"`
+		} `yaml:"config" json:"config"`
+	} `yaml:"validators" json:"validators"`
 	Genesis struct {
 		AppState struct {
 			Staking struct {
 				Params struct {
-					BondDenom     string `yaml:"bond_denom"`
-					MaxValidators string `yaml:"max_validators"`
-				} `yaml:"params"`
-			} `yaml:"staking"`
+					BondDenom     string `yaml:"bond_denom" json:"bond_denom,omitempty"`
+					MaxValidators string `yaml:"max_validators" json:"max_validators,omitempty"`
+				} `yaml:"params" json:"params"`
+			} `yaml:"staking" json:"staking"`
 			Mint struct {
 				Minter struct {
-					AnnualProvisions string `yaml:"annual_provisions"`
-					Inflation        string `yaml:"inflation"`
-				} `yaml:"minter"`
+					AnnualProvisions string ` yaml:"annual_provisions" json:"annual_provisions,omitempty"`
+					Inflation        string `yaml:"inflation" json:"inflation,omitempty"`
+				} `yaml:"minter" json:"minter"`
 				Params struct {
-					MintDenom string `yaml:"mint_denom"`
-				} `yaml:"params"`
-			} `yaml:"mint"`
+					MintDenom string ` yaml:"mint_denom" json:"mint_denom,omitempty"`
+				} `yaml:"params" json:"params"`
+			} `yaml:"mint" json:"mint"`
 			Gov struct {
 				Params struct {
 					MinDeposit []struct {
-						Amount string `yaml:"amount"`
-						Denom  string `yaml:"denom"`
-					} `yaml:"min_deposit"`
-				} `yaml:"params"`
-			} `yaml:"gov"`
+						Amount string `yaml:"amount" json:"amount" `
+						Denom  string `yaml:"denom" json:"denom" `
+					} `yaml:"min_deposit" json:"min_deposit"`
+				} `yaml:"params" json:"params"`
+			} `yaml:"gov" json:"gov"`
 			Distribution struct {
 				Params struct {
-					BaseProposerReward  string `yaml:"base_proposer_reward"`
-					BonusProposerReward string `yaml:"bonus_proposer_reward"`
-					CommunityTax        string `yaml:"community_tax"`
-					WithdrawAddrEnabled bool   `yaml:"withdraw_addr_enabled"`
-				} `yaml:"params"`
-			} `yaml:"distribution"`
+					BaseProposerReward  string ` yaml:"base_proposer_reward" json:"base_proposer_reward,omitempty"`
+					BonusProposerReward string `yaml:"bonus_proposer_reward" json:"bonus_proposer_reward,omitempty"`
+					CommunityTax        string `yaml:"community_tax" json:"community_tax,omitempty"`
+					WithdrawAddrEnabled bool   `yaml:"withdraw_addr_enabled" json:"withdraw_addr_enabled,omitempty"`
+				} `yaml:"params" json:"params"`
+			} `yaml:"distribution" json:"distribution"`
 			Crisis struct {
 				ConstantFee struct {
-					Amount string `yaml:"amount"`
-					Denom  string `yaml:"denom"`
-				} `yaml:"constant_fee"`
-			} `yaml:"crisis"`
-		} `yaml:"app_state"`
-	} `yaml:"genesis"`
+					Amount string `yaml:"amount" json:"amount,omitempty"`
+					Denom  string `yaml:"denom" json:"denom,omitempty"`
+				} `yaml:"constant_fee" json:"constant_fee"`
+			} `yaml:"crisis" json:"crisis"`
+		} `yaml:"app_state" json:"app_state"`
+	} `yaml:"genesis" json:"genesis"`
 }
 
 func (m IgniteConfig) GetAccountBalances(name string) string {
