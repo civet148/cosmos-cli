@@ -29,7 +29,7 @@ validators:
   home: "/data/node0"
   ip: "172.20.0.100"
   app:
-     minimum-gas-prices: "0.000002ushby"
+     minimum-gas-prices: "0.000002ushby,0.000002uhby"
      api:
          enable: true
          enabled-unsafe-cors: true
@@ -60,7 +60,7 @@ validators:
   home: "/data/node1"
   ip: "172.20.0.101"
   app:
-    minimum-gas-prices: "0.000002ushby"
+    minimum-gas-prices: "0.000002ushby,0.000002uhby"
     api:
       enable: true
       enabled-unsafe-cors: true
@@ -91,7 +91,7 @@ validators:
   home: "/data/node2"
   ip: "172.20.0.102"
   app:
-    minimum-gas-prices: "0.000002ushby"
+    minimum-gas-prices: "0.000002ushby,0.000002uhby"
     api:
       enable: true
       enabled-unsafe-cors: true
@@ -122,7 +122,7 @@ validators:
   home: "/data/node3"
   ip: "172.20.0.103"
   app:
-    minimum-gas-prices: "0.000002ushby"
+    minimum-gas-prices: "0.000002ushby,0.000002uhby"
     api:
       enable: true
       enabled-unsafe-cors: true
@@ -153,7 +153,7 @@ validators:
   home: "/data/node4"
   ip: "172.20.0.104"
   app:
-    minimum-gas-prices: "0.000002ushby"
+    minimum-gas-prices: "0.000002ushby,0.000002uhby"
     api:
       enable: true
       enabled-unsafe-cors: true
@@ -188,7 +188,7 @@ genesis:
     mint:
       minter:
         annual_provisions: "0.000000000000000000"
-        inflation: "0.013000000000000000"
+        inflation: "0.000000000000000000"
       params:
         mint_denom: "ushby"
     gov:
