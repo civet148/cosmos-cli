@@ -256,6 +256,11 @@ type GenesisConfig struct {
 				InflationMin        string `json:"inflation_min"`
 				InflationRateChange string `json:"inflation_rate_change"`
 				MintDenom           string `json:"mint_denom"`
+				Reduction           struct {
+					Enable          bool     `json:"enable"`
+					TotalProvisions string   `json:"total_provisions"`
+					Heights         []uint64 `json:"heights"`
+				} `json:"reduction"`
 			} `json:"params"`
 		} `json:"mint"`
 		Params   interface{} `json:"params"`

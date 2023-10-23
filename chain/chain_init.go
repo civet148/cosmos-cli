@@ -385,34 +385,6 @@ func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
 			return log.Errorf("load config [%s] error [%s]", strPath, err.Error())
 		}
 
-		/*
-		  app_state:
-		    staking:
-		      params:
-		        bond_denom: "uhby"
-		        max_validators: "500"
-		    mint:
-		      minter:
-		        annual_provisions: "0.000000000000000000"
-		        inflation: "0.013000000000000000"
-		      params:
-		        mint_denom: "ushby"
-		    gov:
-		      params:
-		        min_deposit:
-		          - amount: "10000000000"
-		            denom: "ushby"
-		    distribution:
-		      params:
-		        base_proposer_reward: "0.010000000000000000"
-		        bonus_proposer_reward: "0.040000000000000000"
-		        community_tax: "0.020000000000000000"
-		        withdraw_addr_enabled: true
-		    crisis:
-		      constant_fee:
-		        amount: "10000000000"
-		        denom: "ushby"
-		*/
 		gov := ic.Genesis.AppState.Gov
 		mint := ic.Genesis.AppState.Mint
 		crisis := ic.Genesis.AppState.Crisis
@@ -437,6 +409,23 @@ func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
 		}
 		if mint.Params.MintDenom != "" {
 			vip.Set("app_state.mint.params.mint_denom", mint.Params.MintDenom)
+		}
+		if mint.Params.BlocksPerYear != "" {
+			vip.Set("app_state.mint.params.blocks_per_year", mint.Params.BlocksPerYear)
+		}
+		if mint.Params.GoalBonded != "" {
+			vip.Set("app_state.mint.params.goal_bonded", mint.Params.GoalBonded)
+		}
+		if mint.Params.InflationMax != "" {
+			vip.Set("app_state.mint.params.inflation_max", mint.Params.InflationMax)
+		}
+		if mint.Params.InflationMin != "" {
+			vip.Set("app_state.mint.params.inflation_min", mint.Params.InflationMin)
+		}
+		if mint.Params.Reduction.Enable {
+			vip.Set("app_state.mint.params.reduction.enable", mint.Params.Reduction.Enable)
+			vip.Set("app_state.mint.params.reduction.total_provisions", mint.Params.Reduction.TotalProvisions)
+			vip.Set("app_state.mint.params.reduction.heights", mint.Params.Reduction.Heights)
 		}
 
 		//handle genesis app state of gov

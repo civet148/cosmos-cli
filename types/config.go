@@ -73,7 +73,17 @@ type IgniteConfig struct {
 					Inflation        string `yaml:"inflation" json:"inflation,omitempty"`
 				} `yaml:"minter" json:"minter"`
 				Params struct {
-					MintDenom string ` yaml:"mint_denom" json:"mint_denom,omitempty"`
+					MintDenom           string `yaml:"mint_denom" json:"mint_denom,omitempty"`
+					BlocksPerYear       string `yaml:"blocks_per_year" json:"blocks_per_year"`
+					GoalBonded          string `yaml:"goal_bonded" json:"goal_bonded"`
+					InflationMax        string `yaml:"inflation_max" json:"inflation_max"`
+					InflationMin        string `yaml:"inflation_min" json:"inflation_min"`
+					InflationRateChange string `yaml:"inflation_rate_change" json:"inflation_rate_change"`
+					Reduction           struct {
+						Enable          bool     `yaml:"enable" json:"enable"`
+						TotalProvisions string   `yaml:"total_provisions" json:"total_provisions"`
+						Heights         []uint64 `yaml:"heights" json:"heights"`
+					} `yaml:"reduction" json:"reduction"`
 				} `yaml:"params" json:"params"`
 			} `yaml:"mint" json:"mint"`
 			Gov struct {
