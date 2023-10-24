@@ -181,6 +181,34 @@ validators:
       prometheus_listen_addr: ":26660"
 genesis:
   app_state:
+    bank:
+      denom_metadata:
+        - description: "The native staking token"
+          base: "uhby"
+          display: "hby"
+          name: "staking token"
+          symbol: "HBY"
+          uri: ""
+          denom_units:
+            - aliases: [ ]
+              denom: "uhby"
+              exponent: 0
+            - aliases: [ ]
+              denom: "hby"
+              exponent: 6
+        - description: "The native gov token"
+          base: "ushby"
+          display: "shby"
+          name: "mint token"
+          symbol: "SHBY"
+          uri: ""
+          denom_units:
+            - aliases: [ ]
+              denom: "ushby"
+              exponent: 0
+            - aliases: [ ]
+              denom: "shby"
+              exponent: 6
     staking:
       params:
         bond_denom: "uhby"
@@ -191,15 +219,15 @@ genesis:
         inflation: "0.000000000000000000"
       params:
         mint_denom: "ushby"
-        blocks_per_year: "100"
+        blocks_per_year: "4505142"
         goal_bonded: "0.670000000000000000"
         inflation_max: "0.200000000000000000"
         inflation_min: "0.070000000000000000"
         inflation_rate_change: "0.130000000000000000"
         reduction:
           enable: true
-          total_provisions: "50000000000"
-          heights: [ 100, 200, 300, 400, 500 ]
+          total_provisions: "500000000000000"
+          heights: [ 9010284,18020568,27030852,36041136,45051420 ]
     gov:
       params:
         min_deposit:

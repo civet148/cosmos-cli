@@ -61,6 +61,21 @@ type IgniteConfig struct {
 	} `yaml:"validators" json:"validators"`
 	Genesis struct {
 		AppState struct {
+			Bank struct {
+				DenomMetadata []struct {
+					Description string `yaml:"description" json:"description,omitempty"`
+					Base        string `yaml:"base" json:"base,omitempty"`
+					Display     string `yaml:"display" json:"display,omitempty"`
+					Name        string `yaml:"name" json:"name,omitempty"`
+					Symbol      string `yaml:"symbol" json:"symbol,omitempty"`
+					URI         string `yaml:"uri" json:"uri,omitempty"`
+					DenomUnits  []struct {
+						Aliases  []interface{} `yaml:"aliases" json:"aliases,omitempty"`
+						Denom    string        `yaml:"denom" json:"denom,omitempty"`
+						Exponent int           `yaml:"exponent" json:"exponent,omitempty"`
+					} `yaml:"denom_units" json:"denom_units,omitempty"`
+				} `yaml:"denom_metadata" json:"denom_metadata"`
+			} `yaml:"bank" json:"bank"`
 			Staking struct {
 				Params struct {
 					BondDenom     string `yaml:"bond_denom" json:"bond_denom,omitempty"`

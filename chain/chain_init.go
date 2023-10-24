@@ -390,7 +390,12 @@ func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
 		crisis := ic.Genesis.AppState.Crisis
 		staking := ic.Genesis.AppState.Staking
 		distr := ic.Genesis.AppState.Distribution
+		bank := ic.Genesis.AppState.Bank
 
+		//handle genesis app state of bank
+		if len(bank.DenomMetadata) != 0 {
+			vip.Set("app_state.bank.denom_metadata", bank.DenomMetadata)
+		}
 		//handle genesis app state of staking
 		if staking.Params.BondDenom != "" {
 			vip.Set("app_state.staking.params.bond_denom", staking.Params.BondDenom)
