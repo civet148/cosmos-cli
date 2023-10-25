@@ -350,6 +350,13 @@ func (m *InitChain) updateCosmosConfig(ic *types.IgniteConfig) (err error) {
 		if v.Config.RPC.Laddr != "" {
 			vip.Set("rpc.laddr", v.Config.RPC.Laddr)
 		}
+		if v.Config.RPC.MaxBodyBytes != "" {
+			nMaxBodySize, err := strconv.Atoi(v.Config.RPC.MaxBodyBytes)
+			if err != nil {
+				return log.Errorf("rpc.max_body_bytes %s invalid number", v.Config.RPC.MaxBodyBytes)
+			}
+			vip.Set("rpc.max_body_bytes", nMaxBodySize)
+		}
 		if v.Config.P2P.Laddr != "" {
 			vip.Set("p2p.laddr", v.Config.P2P.Laddr)
 		}
@@ -391,11 +398,35 @@ func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
 		staking := ic.Genesis.AppState.Staking
 		distr := ic.Genesis.AppState.Distribution
 		bank := ic.Genesis.AppState.Bank
+		consens := ic.Genesis.ConsensusParams
+		//handle consensus parameters
+		if consens.Version.App != "" {
+			vip.Set("consensus_params.version.app", consens.Version.App)
+		}
+		if consens.Block.MaxBytes != "" {
+			vip.Set("consensus_params.block.max_bytes", consens.Block.MaxBytes)
+		}
+		if consens.Block.MaxGas != "" {
+			vip.Set("consensus_params.block.max_gas", consens.Block.MaxGas)
+		}
+		if len(consens.Validator.PubKeyTypes) != 0 {
+			vip.Set("consensus_params.validator.pub_key_types", consens.Validator.PubKeyTypes)
+		}
+		if consens.Evidence.MaxAgeNumBlocks != "" {
+			vip.Set("consensus_params.evidence.max_age_num_blocks", consens.Evidence.MaxAgeNumBlocks)
+		}
+		if consens.Evidence.MaxAgeDuration != "" {
+			vip.Set("consensus_params.evidence.max_age_duration", consens.Evidence.MaxAgeDuration)
+		}
+		if consens.Evidence.MaxBytes != "" {
+			vip.Set("consensus_params.evidence.max_bytes", consens.Evidence.MaxBytes)
+		}
 
 		//handle genesis app state of bank
 		if len(bank.DenomMetadata) != 0 {
 			vip.Set("app_state.bank.denom_metadata", bank.DenomMetadata)
 		}
+
 		//handle genesis app state of staking
 		if staking.Params.BondDenom != "" {
 			vip.Set("app_state.staking.params.bond_denom", staking.Params.BondDenom)

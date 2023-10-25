@@ -46,7 +46,8 @@ type IgniteConfig struct {
 			ProxyApp string `yaml:"proxy_app" json:"proxy_app"`
 			Moniker  string `yaml:"moniker" json:"moniker"`
 			RPC      struct {
-				Laddr string `yaml:"laddr" json:"laddr,omitempty"`
+				MaxBodyBytes string `yaml:"max_body_bytes" json:"max_body_bytes"`
+				Laddr        string `yaml:"laddr" json:"laddr,omitempty"`
 			} `yaml:"rpc" json:"rpc"`
 			P2P struct {
 				Laddr            string `yaml:"laddr" json:"laddr,omitempty"`
@@ -60,6 +61,23 @@ type IgniteConfig struct {
 		} `yaml:"config" json:"config"`
 	} `yaml:"validators" json:"validators"`
 	Genesis struct {
+		ConsensusParams struct {
+			Block struct {
+				MaxBytes string `yaml:"max_bytes" json:"max_bytes"`
+				MaxGas   string `yaml:"max_gas" json:"max_gas"`
+			} `yaml:"block" json:"block"`
+			Evidence struct {
+				MaxAgeNumBlocks string `yaml:"max_age_num_blocks" json:"max_age_num_blocks"`
+				MaxAgeDuration  string `yaml:"max_age_duration" json:"max_age_duration"`
+				MaxBytes        string `yaml:"max_bytes" json:"max_bytes"`
+			} `yaml:"evidence" json:"evidence"`
+			Validator struct {
+				PubKeyTypes []string `yaml:"pub_key_types" json:"pub_key_types"`
+			} `yaml:"validator" json:"validator"`
+			Version struct {
+				App string `yaml:"app" json:"app"`
+			} `yaml:"version" json:"version"`
+		} `yaml:"consensus_params" json:"consensus_params"`
 		AppState struct {
 			Bank struct {
 				DenomMetadata []struct {
