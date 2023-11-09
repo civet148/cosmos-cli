@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	Version     = "v0.1.0"
+	Version     = "v0.1.1"
 	ProgramName = "cosmos-cli"
 )
 

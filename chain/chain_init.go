@@ -146,6 +146,12 @@ func (m *InitChain) checkConfig(ic *types.IgniteConfig) error {
 			return log.Errorf("account [%v] coins is empty", v.Name)
 		}
 	}
+	strHome := ic.Validators[0].Home
+	if strings.HasPrefix(strHome, "~") {
+		strHome = strings.Replace(strHome, "~", "$HOME", -1)
+		strHome = os.ExpandEnv(strHome)
+		ic.Validators[0].Home = strHome
+	}
 	m.strNode0Home = ic.Validators[0].Home
 	m.strNode0Validator = ic.Validators[0].Name
 	return nil
