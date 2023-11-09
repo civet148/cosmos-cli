@@ -94,6 +94,9 @@ func (m *InitChain) parseConfig() (*types.IgniteConfig, error) {
 		return nil, log.Errorf("unmarshal config file %s error [%v]", strConfig, err)
 	}
 	//log.Json("ignite config json", ic)
+	if ic.Genesis.ChainID != m.option.ChainID {
+		m.option.ChainID = ic.Genesis.ChainID
+	}
 	return &ic, nil
 }
 
