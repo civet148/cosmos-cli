@@ -398,6 +398,7 @@ func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
 			return log.Errorf("load config [%s] error [%s]", strPath, err.Error())
 		}
 
+		genesis := ic.Genesis
 		gov := ic.Genesis.AppState.Gov
 		mint := ic.Genesis.AppState.Mint
 		crisis := ic.Genesis.AppState.Crisis
@@ -405,6 +406,18 @@ func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
 		distr := ic.Genesis.AppState.Distribution
 		bank := ic.Genesis.AppState.Bank
 		consens := ic.Genesis.ConsensusParams
+
+		//handle global parameters
+		if genesis.ChainID != "" {
+			vip.Set("chain_id", genesis.ChainID)
+		}
+		if genesis.InitialHeight != "" {
+			vip.Set("initial_height", genesis.InitialHeight)
+		}
+		if genesis.GenesisTime != "" {
+			vip.Set("genesis_time", genesis.GenesisTime)
+		}
+
 		//handle consensus parameters
 		if consens.Version.App != "" {
 			vip.Set("consensus_params.version.app", consens.Version.App)

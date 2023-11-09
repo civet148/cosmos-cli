@@ -61,6 +61,9 @@ type IgniteConfig struct {
 		} `yaml:"config" json:"config"`
 	} `yaml:"validators" json:"validators"`
 	Genesis struct {
+		ChainID         string `yaml:"chain_id" json:"chain_id""`
+		InitialHeight   string `yaml:"initial_height" json:"initial_height"`
+		GenesisTime     string `yaml:"genesis_time" json:"genesis_time"`
 		ConsensusParams struct {
 			Block struct {
 				MaxBytes string `yaml:"max_bytes" json:"max_bytes"`
