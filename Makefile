@@ -12,6 +12,8 @@ build:
 .PHONY: build
 BINS+=cosmos-cli
 
+install:build
+	cp cosmos-cli ${GOPATH}/bin
 clean:
 	rm -rf $(CLEAN) $(BINS)
 .PHONY: clean
