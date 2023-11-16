@@ -166,14 +166,28 @@ func (m *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 
 	cmd := utils.NewCmdExecutor(opt.Debug)
 	var reenter = true
+	var cmdline string
 	for _, v := range ic.Validators {
 		err = os.RemoveAll(v.Home)
 		if err != nil {
 			log.Errorf(err.Error())
 			return
 		}
+
 		//chain config and data init
-		cmdline := maker.MakeCmdLineInit(v.Config.Moniker, v.Home)
+		cmdline = maker.MakeCmdLineConfigKeyringBackend(v.Home)
+		_, err = cmd.Shell(cmdline)
+		if err != nil {
+			log.Errorf(err.Error())
+			return
+		}
+		cmdline = maker.MakeCmdLineConfigChainID(v.Home)
+		_, err = cmd.Shell(cmdline)
+		if err != nil {
+			log.Errorf(err.Error())
+			return
+		}
+		cmdline = maker.MakeCmdLineInit(v.Config.Moniker, v.Home)
 		_, err = cmd.Shell(cmdline)
 		if err != nil {
 			log.Errorf(err.Error())
@@ -263,7 +277,7 @@ func (m *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 	}
 
 	//collect gentxs for first validator
-	cmdline := maker.MakeCmdLineCollectGenTxs(m.strNode0Home)
+	cmdline = maker.MakeCmdLineCollectGenTxs(m.strNode0Home)
 	_, err = cmd.Shell(cmdline)
 	if err != nil {
 		log.Errorf(err.Error())

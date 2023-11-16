@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	Version     = "v0.2.0"
+	Version     = "v0.2.1"
 	ProgramName = "cosmos-cli"
 )
 
@@ -26,12 +26,13 @@ const (
 )
 
 const (
-	CMD_FLAG_NAME_CONFIG        = "config"
-	CMD_FLAG_NAME_DEBUG         = "debug"
-	CMD_FLAG_NAME_NODE_CMD      = "node-cmd"
-	CMD_FLAG_NAME_DEFAULT_DENOM = "default-denom"
-	CMD_FLAG_NAME_CHAIN_ID      = "chain-id"
-	CMD_FLAG_NAME_KEY_PHRASE    = "key-phrase"
+	CMD_FLAG_NAME_CONFIG          = "config"
+	CMD_FLAG_NAME_DEBUG           = "debug"
+	CMD_FLAG_NAME_NODE_CMD        = "node-cmd"
+	CMD_FLAG_NAME_DEFAULT_DENOM   = "default-denom"
+	CMD_FLAG_NAME_CHAIN_ID        = "chain-id"
+	CMD_FLAG_NAME_KEY_PHRASE      = "key-phrase"
+	CMD_FLAG_NAME_KEYRING_BACKEND = "keyring-backend"
 )
 
 func init() {
@@ -118,6 +119,12 @@ var initCmd = &cli.Command{
 			Value:   types.DEFAULT_KEY_PHRASE,
 			Aliases: []string{"p"},
 		},
+		&cli.StringFlag{
+			Name:    CMD_FLAG_NAME_KEYRING_BACKEND,
+			Usage:   "where the keys are stored (os|file|kwallet|pass|test|memory)",
+			Value:   types.DEFAULT_KEYRING_BACKEND,
+			Aliases: []string{"k"},
+		},
 	},
 	Before: func(context *cli.Context) error {
 		//check shells command installed or not before init chain
@@ -143,12 +150,12 @@ var initCmd = &cli.Command{
 	Action: func(cctx *cli.Context) error {
 		opt := &chain.InitOption{
 			Debug:          cctx.Bool(CMD_FLAG_NAME_DEBUG),
-			KeyringBackend: types.KEYRING_BACKEND,
 			ConfigPath:     cctx.String(CMD_FLAG_NAME_CONFIG),
 			NodeCmd:        cctx.String(CMD_FLAG_NAME_NODE_CMD),
 			DefaultDenom:   cctx.String(CMD_FLAG_NAME_DEFAULT_DENOM),
 			ChainID:        cctx.String(CMD_FLAG_NAME_CHAIN_ID),
 			KeyPhrase:      cctx.String(CMD_FLAG_NAME_KEY_PHRASE),
+			KeyringBackend: cctx.String(CMD_FLAG_NAME_KEYRING_BACKEND),
 		}
 		service := chain.NewInitChain(opt)
 		return service.Run()

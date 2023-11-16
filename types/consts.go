@@ -1,11 +1,12 @@
 package types
 
 const (
-	DEFAULT_DENON       = "uhby"
-	DEFAULT_CHAIN_ID    = "coeus"
-	DEFAULT_KEY_PHRASE  = "88888888"
-	DEFAULT_NODE_CMD    = "coeusd"
-	DEFAULT_CONFIG_FILE = "config.yml"
+	DEFAULT_DENON           = "uhby"
+	DEFAULT_CHAIN_ID        = "coeus"
+	DEFAULT_KEY_PHRASE      = "88888888"
+	DEFAULT_NODE_CMD        = "coeusd"
+	DEFAULT_CONFIG_FILE     = "config.yml"
+	DEFAULT_KEYRING_BACKEND = "file"
 )
 
 const (

@@ -39,6 +39,14 @@ func (s *ChainMaker) MkdirCmd() string {
 	return types.EXEC_CMD_MKDIR
 }
 
+func (s *ChainMaker) MakeCmdLineConfigKeyringBackend(strHome string) string {
+	return fmt.Sprintf("%s config keyring-backend %s --home %s", s.NodeCmd(), s.strKeyringBackend, strHome)
+}
+
+func (s *ChainMaker) MakeCmdLineConfigChainID(strHome string) string {
+	return fmt.Sprintf("%s config chain-id %s --home %s", s.NodeCmd(), s.strChainID, strHome)
+}
+
 func (s *ChainMaker) MakeCmdLineInit(strMoniker, strHome string) string {
 	if s.strDefaultDenom != "" {
 		return fmt.Sprintf("%s init %s --chain-id %s --home %s --default-denom %s", s.NodeCmd(), strMoniker, s.strChainID, strHome, s.strDefaultDenom)
