@@ -416,13 +416,15 @@ func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
 		}
 
 		genesis := ic.Genesis
-		gov := ic.Genesis.AppState.Gov
-		mint := ic.Genesis.AppState.Mint
-		crisis := ic.Genesis.AppState.Crisis
-		staking := ic.Genesis.AppState.Staking
-		distr := ic.Genesis.AppState.Distribution
-		bank := ic.Genesis.AppState.Bank
-		consens := ic.Genesis.ConsensusParams
+		gov := genesis.AppState.Gov
+		mint := genesis.AppState.Mint
+		crisis := genesis.AppState.Crisis
+		staking := genesis.AppState.Staking
+		distr := genesis.AppState.Distribution
+		bank := genesis.AppState.Bank
+		consens := genesis.ConsensusParams
+		evm := genesis.AppState.Evm
+		claims := genesis.AppState.Claims
 
 		//handle global parameters
 		if genesis.ChainID != "" {
@@ -456,6 +458,16 @@ func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
 		}
 		if consens.Evidence.MaxBytes != "" {
 			vip.Set("consensus_params.evidence.max_bytes", consens.Evidence.MaxBytes)
+		}
+
+		//handle genesis app state of evm
+		if evm.Params.EvmDenom != "" {
+			vip.Set("app_state.evm.params.evm_denom", evm.Params.EvmDenom)
+		}
+
+		//handle genesis app state of claims
+		if claims.Params.ClaimsDenom != "" {
+			vip.Set("app_state.claims.params.claims_denom", claims.Params.ClaimsDenom)
 		}
 
 		//handle genesis app state of bank

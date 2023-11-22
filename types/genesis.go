@@ -51,6 +51,63 @@ type GenesisConfig struct {
 		Authz struct {
 			Authorization []interface{} `json:"authorization"`
 		} `json:"authz"`
+		Claims struct {
+			ClaimsRecords []interface{} `json:"claims_records" yaml:"claims_records"`
+			Params        struct {
+				AirdropStartTime   time.Time `json:"airdrop_start_time" yaml:"airdrop_start_time"`
+				AuthorizedChannels []string  `json:"authorized_channels" yaml:"authorized_channels"`
+				ClaimsDenom        string    `json:"claims_denom" yaml:"claims_denom"`
+				DurationOfDecay    string    `json:"duration_of_decay" yaml:"duration_of_decay"`
+				DurationUntilDecay string    `json:"duration_until_decay" yaml:"duration_until_decay"`
+				EnableClaims       bool      `json:"enable_claims" yaml:"enable_claims"`
+				EvmChannels        []string  `json:"evm_channels" yaml:"evm_channels"`
+			} `json:"params" yaml:"params"`
+		} `json:"claims" yaml:"claims"`
+		Evm struct {
+			Accounts []interface{} `json:"accounts"`
+			Params   struct {
+				ActivePrecompiles   []string `json:"active_precompiles" yaml:"active_precompiles"`
+				AllowUnprotectedTxs bool     `json:"allow_unprotected_txs" yaml:"allow_unprotected"`
+				ChainConfig         struct {
+					ArrowGlacierBlock   string `json:"arrow_glacier_block" yaml:"arrow_glacier_block"`
+					BerlinBlock         string `json:"berlin_block" yaml:"berlin_block"`
+					ByzantiumBlock      string `json:"byzantium_block" yaml:"byzantium_block"`
+					CancunBlock         string `json:"cancun_block" yaml:"cancun_block"`
+					ConstantinopleBlock string `json:"constantinople_block" yaml:"constantinople_block"`
+					DaoForkBlock        string `json:"dao_fork_block" yaml:"dao_fork_block"`
+					DaoForkSupport      bool   `json:"dao_fork_support" yaml:"dao_fork_support"`
+					Eip150Block         string `json:"eip150_block" yaml:"eip_150_block"`
+					Eip150Hash          string `json:"eip150_hash" yaml:"eip_150_hash"`
+					Eip155Block         string `json:"eip155_block" yaml:"eip_155_block"`
+					Eip158Block         string `json:"eip158_block" yaml:"eip_158_block"`
+					GrayGlacierBlock    string `json:"gray_glacier_block" yaml:"gray_glacier_block"`
+					HomesteadBlock      string `json:"homestead_block" yaml:"homestead_block"`
+					IstanbulBlock       string `json:"istanbul_block" yaml:"istanbul_block"`
+					LondonBlock         string `json:"london_block" yaml:"london_block"`
+					MergeNetsplitBlock  string `json:"merge_netsplit_block" yaml:"merge_netsplit_block"`
+					MuirGlacierBlock    string `json:"muir_glacier_block" yaml:"muir_glacier_block"`
+					PetersburgBlock     string `json:"petersburg_block" yaml:"petersburg_block"`
+					ShanghaiBlock       string `json:"shanghai_block" yaml:"shanghai_block"`
+				} `json:"chain_config"`
+				EnableCall   bool     `json:"enable_call" yaml:"enable_call"`
+				EnableCreate bool     `json:"enable_create" yaml:"enable_create"`
+				EvmDenom     string   `json:"evm_denom" yaml:"evm_denom"`
+				ExtraEips    []string `json:"extra_eips" yaml:"extra_eips"`
+			} `json:"params"`
+		} `json:"evm"`
+
+		Feemarket struct {
+			BlockGas string `json:"block_gas" yaml:"block_gas"`
+			Params   struct {
+				BaseFee                  string `json:"base_fee" yaml:"base_fee"`
+				BaseFeeChangeDenominator int    `json:"base_fee_change_denominator" yaml:"base_fee_change_denominator"`
+				ElasticityMultiplier     int    `json:"elasticity_multiplier" yaml:"elasticity_multiplier"`
+				EnableHeight             string `json:"enable_height" yaml:"enable_height"`
+				MinGasMultiplier         string `json:"min_gas_multiplier" yaml:"min_gas_multiplier"`
+				MinGasPrice              string `json:"min_gas_price" yaml:"min_gas_price"`
+				NoBaseFee                bool   `json:"no_base_fee" yaml:"no_base_fee"`
+			} `json:"params" yaml:"params"`
+		} `json:"feemarket" yaml:"feemarket"`
 		Bank struct {
 			Params struct {
 				SendEnabled        []bank.SendEnabled `json:"send_enabled"`
