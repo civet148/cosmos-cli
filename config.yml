@@ -1,99 +1,65 @@
 version: 1
+build:
+  binary: hobbyd
 accounts:
-- name: validator0
-  coins:
-  - 210000000000uhby
-  - 200000000000ushby
 - name: validator1
   coins:
-  - 210000000000uhby
-  - 200000000000ushby
+  - 400000000000000000000000uhby
+  - 400000000000000000000000usby
 - name: validator2
   coins:
-  - 210000000000uhby
-  - 200000000000ushby
+  - 400000000000000000000000uhby
+  - 400000000000000000000000usby
 - name: validator3
   coins:
-  - 210000000000uhby
-  - 200000000000ushby
+    - 400000000000000000000000uhby
+    - 400000000000000000000000usby
 - name: validator4
   coins:
-  - 210000000000uhby
-  - 200000000000ushby
+    - 400000000000000000000000uhby
+    - 400000000000000000000000usby
 client:
   openapi:
     path: docs/static/openapi.yml
 validators:
-- name: validator0
-  bonded: 200000000000uhby
-  home: "/data/node0"
-  ip: "172.20.0.100"
-  app:
-    minimum-gas-prices: "0.000002ushby,0.000002uhby"
-    api:
-      enable: true
-      enabled-unsafe-cors: true
-      address: "tcp://0.0.0.0:1317"
-    grpc:
-      enable: true
-      address: "0.0.0.0:9090"
-    grpc-web:
-      address: "0.0.0.0:9091"
-      enable: true
-      enable-unsafe-cors: true
-  config:
-    consensus:
-      timeout_commit: "5s"
-    proxy_app: "tcp://0.0.0.0:26658"
-    moniker: "node0"
-    rpc:
-      max_body_bytes: "10240000"
-      laddr: "tcp://0.0.0.0:26657"
-    p2p:
-      laddr: "tcp://0.0.0.0:26656"
-      persistent_peers: ""
-      allow_duplicate_ip: true
-    instrumentation:
-      prometheus: true
-      prometheus_listen_addr: ":26660"
 - name: validator1
-  bonded: 200000000000uhby
+  bonded: 200000000000000000000000uhby
   home: "/data/node1"
   ip: "172.20.0.101"
   app:
-    minimum-gas-prices: "0.000002ushby,0.000002uhby"
-    api:
-      enable: true
-      enabled-unsafe-cors: true
-      address: "tcp://0.0.0.0:1317"
-    grpc:
-      enable: true
-      address: "0.0.0.0:9090"
-    grpc-web:
-      address: "0.0.0.0:9091"
-      enable: true
-      enable-unsafe-cors: true
+     minimum-gas-prices: "10000000usby,10000000uhby"
+     api:
+         enable: true
+         enabled-unsafe-cors: true
+         address: "tcp://0.0.0.0:1317"
+     grpc:
+         enable: true
+         address: "0.0.0.0:9090"
+     grpc-web:
+         address: "0.0.0.0:9091"
+         enable: true
+         enable-unsafe-cors: true
   config:
-    consensus:
-      timeout_commit: "5s"
-    proxy_app: "tcp://0.0.0.0:26658"
-    moniker: "node1"
-    rpc:
-      max_body_bytes: "10240000"
-      laddr: "tcp://0.0.0.0:26657"
-    p2p:
-      laddr: "tcp://0.0.0.0:26656"
-      persistent_peers: ""
-      allow_duplicate_ip: true
-    instrumentation:
-      prometheus: true
-      prometheus_listen_addr: ":26660"
+     consensus:
+         timeout_commit: "7s"
+     proxy_app: "tcp://0.0.0.0:26658"
+     moniker: "node1"
+     rpc:
+         max_body_bytes: "10240000"
+         laddr: "tcp://0.0.0.0:26657"
+     p2p:
+         laddr: "tcp://0.0.0.0:26656"
+         persistent_peers: ""
+         allow_duplicate_ip: true
+     instrumentation:
+         prometheus: true
+         prometheus_listen_addr: ":26660"
 - name: validator2
-  bonded: 200000000000uhby
+  bonded: 200000000000000000000000uhby
   home: "/data/node2"
   ip: "172.20.0.102"
   app:
-    minimum-gas-prices: "0.000002ushby,0.000002uhby"
+    minimum-gas-prices: "10000000usby,10000000uhby"
     api:
       enable: true
       enabled-unsafe-cors: true
@@ -107,7 +73,7 @@ validators:
       enable-unsafe-cors: true
   config:
     consensus:
-      timeout_commit: "5s"
+      timeout_commit: "7s"
     proxy_app: "tcp://0.0.0.0:26658"
     moniker: "node2"
     rpc:
@@ -121,11 +87,11 @@ validators:
       prometheus: true
       prometheus_listen_addr: ":26660"
 - name: validator3
-  bonded: 200000000000uhby
+  bonded: 200000000000000000000000uhby
   home: "/data/node3"
   ip: "172.20.0.103"
   app:
-    minimum-gas-prices: "0.000002ushby,0.000002uhby"
+    minimum-gas-prices: "10000000usby,10000000uhby"
     api:
       enable: true
       enabled-unsafe-cors: true
@@ -139,7 +105,7 @@ validators:
       enable-unsafe-cors: true
   config:
     consensus:
-      timeout_commit: "5s"
+      timeout_commit: "7s"
     proxy_app: "tcp://0.0.0.0:26658"
     moniker: "node3"
     rpc:
@@ -153,11 +119,11 @@ validators:
       prometheus: true
       prometheus_listen_addr: ":26660"
 - name: validator4
-  bonded: 200000000000uhby
+  bonded: 200000000000000000000000uhby
   home: "/data/node4"
   ip: "172.20.0.104"
   app:
-    minimum-gas-prices: "0.000002ushby,0.000002uhby"
+    minimum-gas-prices: "10000000usby,10000000uhby"
     api:
       enable: true
       enabled-unsafe-cors: true
@@ -171,7 +137,7 @@ validators:
       enable-unsafe-cors: true
   config:
     consensus:
-      timeout_commit: "5s"
+      timeout_commit: "7s"
     proxy_app: "tcp://0.0.0.0:26658"
     moniker: "node4"
     rpc:
@@ -194,14 +160,12 @@ genesis:
     version:
       app: "9160"
   app_state:
-    claims:
-      params:
-        claims_denom: "ushby"
     evm:
       params:
-        evm_denom: "ushby"
-        gov_erc721:
-          contract_admin_addr: "0x4405FD14E9420E7C2F8E85D1B5FC205B6ECCF700"
+        evm_denom: "usby"
+    claims:
+      params:
+        claims_denom: "usby"
     feemarket:
       params:
         base_fee: "5000000"
@@ -211,6 +175,13 @@ genesis:
         enable_height: 0
         min_gas_multiplier: "0.500000000000000000"
         no_base_fee: false
+    hobby:
+      params:
+        exchange:
+          from_denom: "uhby"
+          to_denom: "usby"
+          exchange_ratio: "10.0"
+          allow_list: [ ]
     bank:
       denom_metadata:
         - description: "The native staking token"
@@ -218,37 +189,46 @@ genesis:
           display: "hby"
           name: "staking token"
           symbol: "HBY"
-          uri: ""
           denom_units:
             - aliases: [ ]
               denom: "uhby"
               exponent: 0
             - aliases: [ ]
+              denom: "ahby"
+              exponent: 9
+            - aliases: [ ]
               denom: "hby"
-              exponent: 6
+              exponent: 18
         - description: "The native gov token"
-          base: "ushby"
-          display: "shby"
+          base: "usby"
+          display: "sby"
           name: "mint token"
-          symbol: "SHBY"
-          uri: ""
+          symbol: "SBY"
           denom_units:
             - aliases: [ ]
-              denom: "ushby"
+              denom: "usby"
               exponent: 0
             - aliases: [ ]
-              denom: "shby"
-              exponent: 6
+              denom: "asby"
+              exponent: 9
+            - aliases: [ ]
+              denom: "sby"
+              exponent: 18
     staking:
       params:
         bond_denom: "uhby"
         max_validators: "500"
+        min_bond_amount: "1000000000000000000000"
+        max_bond_amount: "300000000000000000000000"
+        enable_evm: true
+        min_commission_rate: "0.0"
+        unbonding_time: "60s"
     mint:
       minter:
         annual_provisions: "0.000000000000000000"
         inflation: "0.000000000000000000"
       params:
-        mint_denom: "ushby"
+        mint_denom: "usby"
         blocks_per_year: "4505142"
         goal_bonded: "0.670000000000000000"
         inflation_max: "0.200000000000000000"
@@ -256,20 +236,22 @@ genesis:
         inflation_rate_change: "0.130000000000000000"
         reduction:
           enable: true
-          total_provisions: "500000000000000"
-          heights: [ 9010284,18020568,27030852,36041136,45051420 ]
+          total_provisions: "500000000000000000000000000"
+          heights: [ 9010284, 18020568, 27030852, 36041136, 45051420 ]
     gov:
       params:
+        gov_erc721:
+          contract_admin_addr: "0x90cfd4d61c9d4c63f2e4648229775aba19ced8df"
         min_deposit:
-          - amount: "10000000000"
-            denom: "ushby"
+          - amount: "10000000000000000000000"
+            denom: "usby"
     distribution:
       params:
         base_proposer_reward: "0.010000000000000000"
         bonus_proposer_reward: "0.040000000000000000"
-        community_tax: "0.020000000000000000"
+        community_tax: "0.000000000000000000"
         withdraw_addr_enabled: true
     crisis:
       constant_fee:
-        amount: "10000000000"
-        denom: "ushby"
+        amount: "10000000000000000000"
+        denom: "usby"

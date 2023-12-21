@@ -2,6 +2,7 @@
 package confile
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 )
@@ -46,5 +47,14 @@ func (c *ConfigFile) Save(v interface{}) error {
 		return err
 	}
 	defer file.Close()
-	return c.creator.Create(file).Encode(v)
+	var data []byte
+	data, err = json.MarshalIndent(v, "", "\t")
+	if err != nil {
+		return err
+	}
+	_, err = file.Write(data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
