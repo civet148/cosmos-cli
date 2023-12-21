@@ -3,10 +3,12 @@ package chain
 import (
 	"fmt"
 	"github.com/civet148/cosmos-cli/api"
+	"github.com/civet148/cosmos-cli/confile"
 	"github.com/civet148/cosmos-cli/shells"
 	"github.com/civet148/cosmos-cli/types"
 	"github.com/civet148/cosmos-cli/utils"
 	"github.com/civet148/log"
+	"github.com/imdario/mergo"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"os"
@@ -14,32 +16,33 @@ import (
 	"strings"
 )
 
-type InitChain struct {
+type ChainBuilder struct {
 	peers             map[string]*types.NodePeer //node peer information
 	option            *types.Option              //init option
 	nNodeCount        int                        //node count
 	strNode0Home      string                     //node0 home
 	strNode0Validator string                     //node0 validator
 	strKeyFile        string                     //key file to save
+	igniteConfigs     map[string]interface{}     //ignite config map
 }
 
-func NewInitChain(opt *types.Option) api.ManagerApi {
+func NewChainBuilder(opt *types.Option) api.ManagerApi {
 	if opt == nil {
 		panic("init option is nil")
 	}
-	return &InitChain{
-		option:     opt,
-		peers:      make(map[string]*types.NodePeer),
-		strKeyFile: types.EXPORT_KEY_FILE,
+	return &ChainBuilder{
+		option:        opt,
+		peers:         make(map[string]*types.NodePeer),
+		strKeyFile:    types.EXPORT_KEY_FILE,
+		igniteConfigs: make(map[string]interface{}),
 	}
 }
 
-func (m *InitChain) Run() error {
-	return m.runInit()
-}
-
-func (m *InitChain) runInit() error {
-	ic, err := m.parseConfig()
+func (m *ChainBuilder) Run() (err error) {
+	var ic *types.IgniteConfig
+	if ic, err = m.parseConfig(); err != nil {
+		return log.Errorf(err.Error())
+	}
 	if err != nil {
 		return err
 	}
@@ -59,7 +62,7 @@ func (m *InitChain) runInit() error {
 	if err != nil {
 		return err
 	}
-	err = m.updateGenesisConfig(ic)
+	err = m.mergeGenesisConfig(ic)
 	if err != nil {
 		return err
 	}
@@ -70,25 +73,33 @@ func (m *InitChain) runInit() error {
 	return nil
 }
 
-func (m *InitChain) parseConfig() (*types.IgniteConfig, error) {
+func (m *ChainBuilder) parseConfig() (ic *types.IgniteConfig, err error) {
+	vip := viper.New()
+	strPath := m.option.ConfigPath
+	vip.SetConfigFile(strPath)
+	vip.SetConfigType("yaml")
+	if err = vip.ReadInConfig(); err != nil {
+		return nil, log.Errorf("load config [%s] error [%s]", strPath, err.Error())
+	}
+	m.igniteConfigs = vip.AllSettings()
 	strConfig := m.option.ConfigPath
 	data, err := os.ReadFile(strConfig)
 	if err != nil {
 		return nil, log.Errorf("open config file %s error [%v]", strConfig, err)
 	}
-	ic := types.IgniteConfig{}
-	err = yaml.Unmarshal(data, &ic)
+	ic = &types.IgniteConfig{}
+	err = yaml.Unmarshal(data, ic)
 	if err != nil {
 		return nil, log.Errorf("unmarshal config file %s error [%v]", strConfig, err)
 	}
-	//log.Json("ignite config json", ic)
+	log.Json("ignite config json", ic)
 	if ic.Genesis.ChainID != m.option.ChainID {
 		m.option.ChainID = ic.Genesis.ChainID
 	}
-	return &ic, nil
+	return ic, nil
 }
 
-func (m *InitChain) checkConfig(ic *types.IgniteConfig) error {
+func (m *ChainBuilder) checkConfig(ic *types.IgniteConfig) error {
 
 	if len(ic.Validators) == 0 {
 		return log.Errorf("validators must not be empty")
@@ -148,7 +159,7 @@ func (m *InitChain) checkConfig(ic *types.IgniteConfig) error {
 	return nil
 }
 
-func (m *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
+func (m *ChainBuilder) initNodes(ic *types.IgniteConfig) (err error) {
 	opt := m.option
 	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase, opt.KeyringBackend)
 
@@ -296,7 +307,7 @@ func (m *InitChain) initNodes(ic *types.IgniteConfig) (err error) {
 	return nil
 }
 
-func (m *InitChain) updateAppConfig(ic *types.IgniteConfig) (err error) {
+func (m *ChainBuilder) updateAppConfig(ic *types.IgniteConfig) (err error) {
 	for _, v := range ic.Validators {
 		vip := viper.New()
 		strPath := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_APP)
@@ -342,7 +353,7 @@ func (m *InitChain) updateAppConfig(ic *types.IgniteConfig) (err error) {
 	return
 }
 
-func (m *InitChain) updateCosmosConfig(ic *types.IgniteConfig) (err error) {
+func (m *ChainBuilder) updateCosmosConfig(ic *types.IgniteConfig) (err error) {
 	for _, v := range ic.Validators {
 
 		vip := viper.New()
@@ -397,7 +408,7 @@ func (m *InitChain) updateCosmosConfig(ic *types.IgniteConfig) (err error) {
 	return
 }
 
-func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
+func (m *ChainBuilder) mergeGenesisConfig(ic *types.IgniteConfig) (err error) {
 	for _, v := range ic.Validators {
 		vip := viper.New()
 		strPath := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_GENESIS)
@@ -406,140 +417,23 @@ func (m *InitChain) updateGenesisConfig(ic *types.IgniteConfig) (err error) {
 		if err = vip.ReadInConfig(); err != nil {
 			return log.Errorf("load config [%s] error [%s]", strPath, err.Error())
 		}
+		var genesis = make(map[string]interface{})
+		genesis = vip.AllSettings()
 
-		genesis := ic.Genesis
-		gov := genesis.AppState.Gov
-		mint := genesis.AppState.Mint
-		crisis := genesis.AppState.Crisis
-		staking := genesis.AppState.Staking
-		distr := genesis.AppState.Distribution
-		bank := genesis.AppState.Bank
-		consens := genesis.ConsensusParams
-		evm := genesis.AppState.Evm
-		claims := genesis.AppState.Claims
-
-		//handle global parameters
-		if genesis.ChainID != "" {
-			vip.Set("chain_id", genesis.ChainID)
-		}
-		if genesis.InitialHeight != "" {
-			vip.Set("initial_height", genesis.InitialHeight)
-		}
-		if genesis.GenesisTime != "" {
-			vip.Set("genesis_time", genesis.GenesisTime)
+		cf := confile.New(confile.DefaultJSONEncodingCreator, strPath)
+		if err = cf.Load(&genesis); err != nil {
+			return err
 		}
 
-		//handle consensus parameters
-		if consens.Version.App != "" {
-			vip.Set("consensus_params.version.app", consens.Version.App)
+		if err = mergo.Merge(&genesis, m.igniteConfigs["genesis"], mergo.WithOverride); err != nil {
+			return err
 		}
-		if consens.Block.MaxBytes != "" {
-			vip.Set("consensus_params.block.max_bytes", consens.Block.MaxBytes)
-		}
-		if consens.Block.MaxGas != "" {
-			vip.Set("consensus_params.block.max_gas", consens.Block.MaxGas)
-		}
-		if len(consens.Validator.PubKeyTypes) != 0 {
-			vip.Set("consensus_params.validator.pub_key_types", consens.Validator.PubKeyTypes)
-		}
-		if consens.Evidence.MaxAgeNumBlocks != "" {
-			vip.Set("consensus_params.evidence.max_age_num_blocks", consens.Evidence.MaxAgeNumBlocks)
-		}
-		if consens.Evidence.MaxAgeDuration != "" {
-			vip.Set("consensus_params.evidence.max_age_duration", consens.Evidence.MaxAgeDuration)
-		}
-		if consens.Evidence.MaxBytes != "" {
-			vip.Set("consensus_params.evidence.max_bytes", consens.Evidence.MaxBytes)
-		}
-
-		//handle genesis app state of evm
-		if evm.Params.EvmDenom != "" {
-			vip.Set("app_state.evm.params.evm_denom", evm.Params.EvmDenom)
-		}
-
-		//handle genesis app state of claims
-		if claims.Params.ClaimsDenom != "" {
-			vip.Set("app_state.claims.params.claims_denom", claims.Params.ClaimsDenom)
-		}
-
-		//handle genesis app state of bank
-		if len(bank.DenomMetadata) != 0 {
-			vip.Set("app_state.bank.denom_metadata", bank.DenomMetadata)
-		}
-
-		//handle genesis app state of staking
-		if staking.Params.BondDenom != "" {
-			vip.Set("app_state.staking.params.bond_denom", staking.Params.BondDenom)
-		}
-		if staking.Params.MaxValidators != "" {
-			count, _ := strconv.Atoi(staking.Params.MaxValidators)
-			vip.Set("app_state.staking.params.max_validators", count)
-		}
-
-		//handle genesis app state of mint
-		if mint.Minter.AnnualProvisions != "" {
-			vip.Set("app_state.mint.minter.annual_provisions", mint.Minter.AnnualProvisions)
-		}
-		if mint.Minter.Inflation != "" {
-			vip.Set("app_state.mint.minter.inflation", mint.Minter.Inflation)
-		}
-		if mint.Params.MintDenom != "" {
-			vip.Set("app_state.mint.params.mint_denom", mint.Params.MintDenom)
-		}
-		if mint.Params.BlocksPerYear != "" {
-			vip.Set("app_state.mint.params.blocks_per_year", mint.Params.BlocksPerYear)
-		}
-		if mint.Params.GoalBonded != "" {
-			vip.Set("app_state.mint.params.goal_bonded", mint.Params.GoalBonded)
-		}
-		if mint.Params.InflationMax != "" {
-			vip.Set("app_state.mint.params.inflation_max", mint.Params.InflationMax)
-		}
-		if mint.Params.InflationMin != "" {
-			vip.Set("app_state.mint.params.inflation_min", mint.Params.InflationMin)
-		}
-		if mint.Params.Reduction.Enable {
-			vip.Set("app_state.mint.params.reduction.enable", mint.Params.Reduction.Enable)
-			vip.Set("app_state.mint.params.reduction.total_provisions", mint.Params.Reduction.TotalProvisions)
-			vip.Set("app_state.mint.params.reduction.heights", mint.Params.Reduction.Heights)
-		}
-
-		//handle genesis app state of gov
-		if len(gov.Params.MinDeposit) != 0 {
-			vip.Set("app_state.gov.params.min_deposit", gov.Params.MinDeposit)
-		}
-
-		//handle genesis app state of distribution
-		if distr.Params.BaseProposerReward != "" {
-			vip.Set("app_state.distribution.params.base_proposer_reward", distr.Params.BaseProposerReward)
-		}
-		if distr.Params.BonusProposerReward != "" {
-			vip.Set("app_state.distribution.params.bonus_proposer_reward", distr.Params.BonusProposerReward)
-		}
-		if distr.Params.CommunityTax != "" {
-			vip.Set("app_state.distribution.params.community_tax", distr.Params.CommunityTax)
-		}
-		if distr.Params.WithdrawAddrEnabled {
-			vip.Set("app_state.distribution.params.withdraw_addr_enabled", distr.Params.WithdrawAddrEnabled)
-		}
-
-		//handle genesis app state of crisis
-		if crisis.ConstantFee.Amount != "" {
-			vip.Set("app_state.crisis.constant_fee.amount", crisis.ConstantFee.Amount)
-		}
-		if crisis.ConstantFee.Denom != "" {
-			vip.Set("app_state.crisis.constant_fee.denom", crisis.ConstantFee.Denom)
-		}
-
-		//save to genesis.json file
-		if err = vip.WriteConfig(); err != nil {
-			return log.Errorf(err.Error())
-		}
+		err = cf.Save(genesis)
 	}
 	return nil
 }
 
-func (m *InitChain) syncGenesisFile(ic *types.IgniteConfig) (err error) {
+func (m *ChainBuilder) syncGenesisFile(ic *types.IgniteConfig) (err error) {
 	opt := m.option
 	cmd := utils.NewCmdExecutor(opt.Debug)
 	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase, opt.KeyringBackend)

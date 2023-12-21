@@ -185,7 +185,7 @@ validators:
       prometheus: true
       prometheus_listen_addr: ":26660"
 genesis:
-  chain_id: "coeus"
+  chain_id: "hobby_9000-1"
   initial_height: "1"
   genesis_time: "2023-11-09T07:46:56.293077949Z"
   consensus_params:
@@ -200,6 +200,8 @@ genesis:
     evm:
       params:
         evm_denom: "ushby"
+        gov_erc721:
+          contract_admin_addr: "0x4405FD14E9420E7C2F8E85D1B5FC205B6ECCF700"
     feemarket:
       params:
         base_fee: "5000000"

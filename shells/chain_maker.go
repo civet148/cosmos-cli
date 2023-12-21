@@ -54,12 +54,13 @@ func (s *ChainMaker) MakeCmdLineInit(strMoniker, strHome string) string {
 	return fmt.Sprintf("%s init %s --chain-id %s --home %s", s.NodeCmd(), strMoniker, s.strChainID, strHome)
 }
 
-func (s *ChainMaker) MakeCmdLineKeysAdd(strAccName, strHome string, reenter bool) string {
+func (s *ChainMaker) MakeCmdLineKeysAdd(strAccName, strHome string, reenter, passwd bool) string {
 
 	var strCmdLine string
 	strSpawn := fmt.Sprintf("%s keys add %s --home %s --keyring-backend %s", s.NodeCmd(), strAccName, strHome, s.strKeyringBackend)
-	if reenter {
-		strCmdLine = fmt.Sprintf(`
+	if passwd {
+		if reenter {
+			strCmdLine = fmt.Sprintf(`
 		expect <<-EOF
 		spawn %s
 		expect "Enter keyring passphrase"
@@ -69,8 +70,8 @@ func (s *ChainMaker) MakeCmdLineKeysAdd(strAccName, strHome string, reenter bool
 		expect eof
 		EOF
 `, strSpawn, s.strKeyPhrase, s.strKeyPhrase)
-	} else {
-		strCmdLine = fmt.Sprintf(`
+		} else {
+			strCmdLine = fmt.Sprintf(`
 		expect <<-EOF
 		spawn %s
 		expect "Enter keyring passphrase"
@@ -78,8 +79,10 @@ func (s *ChainMaker) MakeCmdLineKeysAdd(strAccName, strHome string, reenter bool
 		expect eof
 		EOF
 `, strSpawn, s.strKeyPhrase)
+		}
+	} else {
+		strCmdLine = strSpawn
 	}
-
 	return strCmdLine
 }
 
@@ -128,9 +131,11 @@ func (s *ChainMaker) MakeCmdLineKeysImport(strAccName, strHome, strKeyFile strin
 	return strCmdLine
 }
 
-func (s *ChainMaker) MakeCmdLineAddGenesisAccount(strAccName, strHome, strBalances string) string {
+func (s *ChainMaker) MakeCmdLineAddGenesisAccount(strAccName, strHome, strBalances string, passwd bool) string {
+	var strCmdLine string
 	strSpawn := fmt.Sprintf("%s add-genesis-account %s %s --home %s --keyring-backend %s", s.NodeCmd(), strAccName, strBalances, strHome, s.strKeyringBackend)
-	strCmdLine := fmt.Sprintf(`
+	if passwd {
+		strCmdLine = fmt.Sprintf(`
 		expect <<-EOF
 		spawn %s
 		expect "Enter keyring passphrase"
@@ -138,13 +143,18 @@ func (s *ChainMaker) MakeCmdLineAddGenesisAccount(strAccName, strHome, strBalanc
 		expect eof
 		EOF
 `, strSpawn, s.strKeyPhrase)
+	} else {
+		strCmdLine = strSpawn
+	}
 	return strCmdLine
 }
 
-func (s *ChainMaker) MakeCmdLineGenTx(strAccName, strHome, strStaking, strIP, strPort string) string {
+func (s *ChainMaker) MakeCmdLineGenTx(strAccName, strHome, strStaking, strIP, strPort string, passwd bool) string {
+	var strCmdLine string
 	strSpawn := fmt.Sprintf("%s gentx %s %s --chain-id %s --ip %s --p2p-port %s --home %s --keyring-backend %s",
 		s.NodeCmd(), strAccName, strStaking, s.strChainID, strIP, strPort, strHome, s.strKeyringBackend)
-	strCmdLine := fmt.Sprintf(`
+	if passwd {
+		strCmdLine = fmt.Sprintf(`
 		expect <<-EOF
 		spawn %s
 		expect "Enter keyring passphrase"
@@ -152,6 +162,9 @@ func (s *ChainMaker) MakeCmdLineGenTx(strAccName, strHome, strStaking, strIP, st
 		expect eof
 		EOF
 `, strSpawn, s.strKeyPhrase)
+	} else {
+		strCmdLine = strSpawn
+	}
 	return strCmdLine
 }
 
@@ -172,7 +185,7 @@ func (s *ChainMaker) MakeCmdLineCopyGenesisFile(strHomeSrc, strHomeDst string) s
 }
 
 func (s *ChainMaker) MakeCmdLineCopyKeysFile(src, dest string) string {
-	return fmt.Sprintf("%s -f %s/keyring-file/* %s/keyring-file", s.CopyCmd(), src, dest)
+	return fmt.Sprintf("%s -rf %s/keyring-* %s", s.CopyCmd(), src, dest)
 }
 
 func (s *ChainMaker) MakeCmdLineMkdirKeyringFile(strHome string) string {

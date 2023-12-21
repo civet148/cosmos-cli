@@ -34,8 +34,9 @@ const (
 )
 
 const (
-	EXPORT_KEY_FILE = "/tmp/account.key"
-	KEYRING_BACKEND = "file"
+	EXPORT_KEY_FILE      = "/tmp/account.key"
+	KEYRING_BACKEND_TEST = "test"
+	KEYRING_BACKEND_FILE = "file"
 )
 
 const (
