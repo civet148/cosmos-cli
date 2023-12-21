@@ -36,9 +36,8 @@ func (c *ConfigFile) Load(v interface{}) error {
 	return c.creator.Create(file).Decode(v)
 }
 
-// Save saves v into config file by overwriting the previous content it also creates the
-// config file if it wasn't exist.
-func (c *ConfigFile) Save(v interface{}) error {
+// SaveJSON saves v into file as JSON format
+func (c *ConfigFile) SaveJSON(v interface{}) error {
 	if err := os.MkdirAll(filepath.Dir(c.path), 0o755); err != nil {
 		return err
 	}
@@ -57,4 +56,18 @@ func (c *ConfigFile) Save(v interface{}) error {
 		return err
 	}
 	return nil
+}
+
+// Save saves v into config file by overwriting the previous content it also creates the
+// config file if it wasn't exist.
+func (c *ConfigFile) Save(v interface{}) error {
+	if err := os.MkdirAll(filepath.Dir(c.path), 0o755); err != nil {
+		return err
+	}
+	file, err := os.OpenFile(c.path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return c.creator.Create(file).Encode(v)
 }

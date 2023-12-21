@@ -427,7 +427,7 @@ func (m *ChainBuilder) mergeGenesisConfig(ic *types.IgniteConfig) (err error) {
 		if err = mergo.Merge(&genesis, m.igniteConfigs["genesis"], mergo.WithOverride); err != nil {
 			return err
 		}
-		err = cf.Save(genesis)
+		err = cf.SaveJSON(genesis)
 	}
 	return nil
 }
