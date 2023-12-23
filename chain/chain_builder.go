@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -307,7 +306,8 @@ func (m *ChainBuilder) initNodes(ic *types.IgniteConfig) (err error) {
 }
 
 func (m *ChainBuilder) updateAppConfig(ic *types.IgniteConfig) (err error) {
-	for _, v := range ic.Validators {
+	vals := m.igniteConfigs["validators"].([]interface{})
+	for i, v := range ic.Validators {
 		vip := viper.New()
 		strPath := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_APP)
 		vip.SetConfigFile(strPath)
@@ -315,46 +315,24 @@ func (m *ChainBuilder) updateAppConfig(ic *types.IgniteConfig) (err error) {
 		if err = vip.ReadInConfig(); err != nil {
 			return log.Errorf("load config [%s] error [%s]", strPath, err.Error())
 		}
-
-		//if v.App.MinimumGasPrices != "" {
-		vip.Set("minimum-gas-prices", v.App.MinimumGasPrices)
-		//}
-		if v.App.API.Enable {
-			vip.Set("api.enable", v.App.API.Enable)
+		var genesis = make(map[string]interface{})
+		genesis = vip.AllSettings()
+		cf := confile.New(confile.DefaultTOMLEncodingCreator, strPath)
+		if err = cf.Load(&genesis); err != nil {
+			return err
 		}
-		if v.App.API.Address != "" {
-			vip.Set("api.address", v.App.API.Address)
+		igniteSettings := vals[i].(map[string]interface{})
+		if err = mergo.Merge(&genesis, igniteSettings["app"], mergo.WithOverride); err != nil {
+			return err
 		}
-		if v.App.API.EnabledUnsafeCors {
-			vip.Set("api.enabled-unsafe-cors", v.App.API.EnabledUnsafeCors)
-		}
-		if v.App.Grpc.Enable {
-			vip.Set("grpc.enable", v.App.Grpc.Enable)
-		}
-		if v.App.Grpc.Address != "" {
-			vip.Set("grpc.address", v.App.Grpc.Address)
-		}
-		if v.App.GrpcWeb.Enable {
-			vip.Set("grpc-web.enable", v.App.GrpcWeb.Enable)
-		}
-		if v.App.GrpcWeb.Address != "" {
-			vip.Set("grpc-web.address", v.App.GrpcWeb.Address)
-		}
-		if v.App.GrpcWeb.EnableUnsafeCors {
-			vip.Set("grpc-web.enable-unsafe-cors", v.App.GrpcWeb.EnableUnsafeCors)
-		}
-
-		//save to app.toml file
-		if err = vip.WriteConfig(); err != nil {
-			return log.Errorf(err.Error())
-		}
+		err = cf.Save(genesis)
 	}
 	return
 }
 
 func (m *ChainBuilder) updateCosmosConfig(ic *types.IgniteConfig) (err error) {
-	for _, v := range ic.Validators {
-
+	vals := m.igniteConfigs["validators"].([]interface{})
+	for i, v := range ic.Validators {
 		vip := viper.New()
 		strPath := utils.MakeCosmosConfigPath(v.Home, types.FILE_NAME_CONFIG)
 		vip.SetConfigFile(strPath)
@@ -362,47 +340,28 @@ func (m *ChainBuilder) updateCosmosConfig(ic *types.IgniteConfig) (err error) {
 		if err = vip.ReadInConfig(); err != nil {
 			return log.Errorf("load config [%s] error [%s]", strPath, err.Error())
 		}
-
-		if v.Config.Moniker != "" {
-			vip.Set("moniker", v.Config.Moniker)
-		}
-		if v.Config.ProxyApp != "" {
-			vip.Set("proxy_app", v.Config.ProxyApp)
-		}
-		if v.Config.Consensus.TimeoutCommit != "" {
-			vip.Set("consensus.timeout_commit", v.Config.Consensus.TimeoutCommit)
-		}
-		if v.Config.RPC.Laddr != "" {
-			vip.Set("rpc.laddr", v.Config.RPC.Laddr)
-		}
-		if v.Config.RPC.MaxBodyBytes != "" {
-			nMaxBodySize, err := strconv.Atoi(v.Config.RPC.MaxBodyBytes)
-			if err != nil {
-				return log.Errorf("rpc.max_body_bytes %s invalid number", v.Config.RPC.MaxBodyBytes)
-			}
-			vip.Set("rpc.max_body_bytes", nMaxBodySize)
-		}
-		if v.Config.P2P.Laddr != "" {
-			vip.Set("p2p.laddr", v.Config.P2P.Laddr)
-		}
-		if v.Config.P2P.AllowDuplicateIP {
-			vip.Set("p2p.allow_duplicate_ip", v.Config.P2P.AllowDuplicateIP)
-		}
-		if v.Config.Instrumentation.Prometheus {
-			vip.Set("instrumentation.prometheus", v.Config.Instrumentation.Prometheus)
-		}
-		if v.Config.Instrumentation.PrometheusListenAddr != "" {
-			vip.Set("instrumentation.prometheus_listen_addr", v.Config.Instrumentation.PrometheusListenAddr)
-		}
 		//update validator p2p persistent peers
+		var strPeers string
 		if np, ok := m.peers[v.Name]; ok {
-			strPeers := strings.Join(np.PersistentPeers, ",")
+			strPeers = strings.Join(np.PersistentPeers, ",")
 			vip.Set("p2p.persistent_peers", strPeers)
+			log.Infof("[%s] p2p.persistent_peers=%s", v.Name, strPeers)
 		}
-		//save to config.toml file
-		if err = vip.WriteConfig(); err != nil {
-			return log.Errorf(err.Error())
+		var genesis = make(map[string]interface{})
+		genesis = vip.AllSettings()
+		cf := confile.New(confile.DefaultTOMLEncodingCreator, strPath)
+		if err = cf.Load(&genesis); err != nil {
+			return err
 		}
+		igniteSettings := vals[i].(map[string]interface{})
+		conf := igniteSettings["config"].(map[string]interface{})
+		p2p := conf["p2p"].(map[string]interface{})
+		p2p["persistent_peers"] = strPeers
+		log.Json("cosmos config", conf)
+		if err = mergo.Merge(&genesis, conf, mergo.WithOverride); err != nil {
+			return err
+		}
+		err = cf.Save(genesis)
 	}
 	return
 }
@@ -423,8 +382,8 @@ func (m *ChainBuilder) mergeGenesisConfig(ic *types.IgniteConfig) (err error) {
 		if err = cf.Load(&genesis); err != nil {
 			return err
 		}
-
-		if err = mergo.Merge(&genesis, m.igniteConfigs["genesis"], mergo.WithOverride); err != nil {
+		igniteSettings := m.igniteConfigs["genesis"]
+		if err = mergo.Merge(&genesis, igniteSettings, mergo.WithOverride); err != nil {
 			return err
 		}
 		err = cf.SaveJSON(genesis)
