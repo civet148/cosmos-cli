@@ -322,7 +322,9 @@ func (m *ChainBuilder) updateAppConfig(ic *types.IgniteConfig) (err error) {
 			return err
 		}
 		igniteSettings := vals[i].(map[string]interface{})
-		if err = mergo.Merge(&genesis, igniteSettings["app"], mergo.WithOverride); err != nil {
+		conf := igniteSettings["app"]
+		log.Json("app config to update", conf)
+		if err = mergo.Merge(&genesis, conf, mergo.WithOverride); err != nil {
 			return err
 		}
 		err = cf.Save(genesis)
@@ -357,7 +359,7 @@ func (m *ChainBuilder) updateCosmosConfig(ic *types.IgniteConfig) (err error) {
 		conf := igniteSettings["config"].(map[string]interface{})
 		p2p := conf["p2p"].(map[string]interface{})
 		p2p["persistent_peers"] = strPeers
-		log.Json("cosmos config", conf)
+		log.Json("cosmos config to update", conf)
 		if err = mergo.Merge(&genesis, conf, mergo.WithOverride); err != nil {
 			return err
 		}

@@ -65,7 +65,6 @@ func main() {
 	grace()
 
 	local := []*cli.Command{
-		initCmd,
 		buildCmd,
 	}
 	app := &cli.App{
@@ -125,50 +124,10 @@ var initFlags = []cli.Flag{
 	},
 }
 
-var initCmd = &cli.Command{
-	Name:      CMD_NAME_INIT,
-	Usage:     "set up cosmos nodes initializer",
-	ArgsUsage: "",
-	Flags:     initFlags,
-	Before: func(context *cli.Context) error {
-		//check shells command installed or not before init chain
-		cmd := utils.NewCmdExecutor(false)
-		ok := cmd.Which(types.COMMAND_NAME_EXPECT)
-		if !ok {
-			if cmd.Which(types.COMMAND_NAME_APT_GET) {
-				_, err := cmd.Shell("sudo apt-get install -y expect")
-				if err != nil {
-					return err
-				}
-			} else if cmd.Which(types.COMMAND_NAME_YUM) {
-				_, err := cmd.Shell("sudo yum install -y expect")
-				if err != nil {
-					return err
-				}
-			} else {
-				return fmt.Errorf("%s command not found, please install expect first", types.COMMAND_NAME_EXPECT)
-			}
-		}
-		return nil
-	},
-	Action: func(cctx *cli.Context) error {
-		opt := &types.Option{
-			Debug:          cctx.Bool(CMD_FLAG_NAME_DEBUG),
-			ConfigPath:     cctx.String(CMD_FLAG_NAME_CONFIG),
-			NodeCmd:        cctx.String(CMD_FLAG_NAME_NODE_CMD),
-			DefaultDenom:   cctx.String(CMD_FLAG_NAME_DEFAULT_DENOM),
-			ChainID:        cctx.String(CMD_FLAG_NAME_CHAIN_ID),
-			KeyPhrase:      cctx.String(CMD_FLAG_NAME_KEY_PHRASE),
-			KeyringBackend: cctx.String(CMD_FLAG_NAME_KEYRING_BACKEND),
-		}
-		service := chain.NewInitChain(opt)
-		return service.Run()
-	},
-}
-
 var buildCmd = &cli.Command{
 	Name:      CMD_NAME_BUILD,
 	Usage:     "build cosmos chain nodes",
+	Aliases:   []string{"init"},
 	ArgsUsage: "",
 	Flags:     initFlags,
 	Before: func(context *cli.Context) error {
