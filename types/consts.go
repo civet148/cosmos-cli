@@ -2,11 +2,11 @@ package types
 
 const (
 	DEFAULT_DENON           = "uhby"
-	DEFAULT_CHAIN_ID        = "coeus"
+	DEFAULT_CHAIN_ID        = "hobby_9000-1"
 	DEFAULT_KEY_PHRASE      = "88888888"
-	DEFAULT_NODE_CMD        = "coeusd"
+	DEFAULT_NODE_CMD        = "hobbyd"
 	DEFAULT_CONFIG_FILE     = "config.yml"
-	DEFAULT_KEYRING_BACKEND = "file"
+	DEFAULT_KEYRING_BACKEND = KEYRING_BACKEND_FILE
 )
 
 const (
@@ -34,8 +34,9 @@ const (
 )
 
 const (
-	EXPORT_KEY_FILE = "/tmp/account.key"
-	KEYRING_BACKEND = "file"
+	EXPORT_KEY_FILE      = "/tmp/account.key"
+	KEYRING_BACKEND_TEST = "test"
+	KEYRING_BACKEND_FILE = "file"
 )
 
 const (
