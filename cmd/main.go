@@ -127,7 +127,7 @@ var initFlags = []cli.Flag{
 var buildCmd = &cli.Command{
 	Name:      CMD_NAME_BUILD,
 	Usage:     "build cosmos chain nodes",
-	Aliases:   []string{"init"},
+	Aliases:   []string{CMD_NAME_INIT},
 	ArgsUsage: "",
 	Flags:     initFlags,
 	Before: func(context *cli.Context) error {
