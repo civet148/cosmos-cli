@@ -195,3 +195,21 @@ func (s *ChainMaker) MakeCmdLineMkdirKeyringFile(strHome string) string {
 func (s *ChainMaker) MakeCmdLineShowNodeId(strHome string) string {
 	return fmt.Sprintf("%s tendermint show-node-id --home %s", s.NodeCmd(), strHome)
 }
+
+func (s *ChainMaker) MakeCmdLineKeysShowAddrOnly(strHome string, name string, addrType string) string {
+	var strCmdLine string
+	strSpawn := fmt.Sprintf("%s keys show %s --bech %s -a --home %s", s.NodeCmd(), name, addrType, strHome)
+	if s.strKeyringBackend != "test" {
+		strCmdLine = fmt.Sprintf(`
+		expect <<-EOF
+		spawn %s
+		expect "Enter keyring passphrase"
+		send "%s\r"
+		expect eof
+		EOF
+`, strSpawn, s.strKeyPhrase)
+	} else {
+		strCmdLine = strSpawn
+	}
+	return strCmdLine
+}

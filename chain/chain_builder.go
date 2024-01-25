@@ -23,14 +23,17 @@ type ChainBuilder struct {
 	strNode0Validator string                     //node0 validator
 	strKeyFile        string                     //key file to save
 	igniteConfigs     map[string]interface{}     //ignite config map
+	maker             *shells.ChainMaker         //shell maker
 }
 
 func NewChainBuilder(opt *types.Option) api.ManagerApi {
 	if opt == nil {
 		panic("init option is nil")
 	}
+	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase, opt.KeyringBackend)
 	return &ChainBuilder{
 		option:        opt,
+		maker:         maker,
 		peers:         make(map[string]*types.NodePeer),
 		strKeyFile:    types.EXPORT_KEY_FILE,
 		igniteConfigs: make(map[string]interface{}),
@@ -66,6 +69,10 @@ func (m *ChainBuilder) Run() (err error) {
 		return err
 	}
 	err = m.syncGenesisFile(ic)
+	if err != nil {
+		return err
+	}
+	err = m.showValidators(ic)
 	if err != nil {
 		return err
 	}
@@ -159,7 +166,7 @@ func (m *ChainBuilder) checkConfig(ic *types.IgniteConfig) error {
 
 func (m *ChainBuilder) initNodes(ic *types.IgniteConfig) (err error) {
 	opt := m.option
-	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase, opt.KeyringBackend)
+	maker := m.maker
 
 	cmd := utils.NewCmdExecutor(opt.Debug)
 	var reenter = true
@@ -395,8 +402,9 @@ func (m *ChainBuilder) mergeGenesisConfig(ic *types.IgniteConfig) (err error) {
 
 func (m *ChainBuilder) syncGenesisFile(ic *types.IgniteConfig) (err error) {
 	opt := m.option
+	maker := m.maker
 	cmd := utils.NewCmdExecutor(opt.Debug)
-	maker := shells.NewChainMaker(opt.NodeCmd, opt.ChainID, opt.DefaultDenom, opt.KeyPhrase, opt.KeyringBackend)
+
 	for _, v := range ic.Validators {
 		//sync genesis.json to every validator except first validator
 		if v.Name != m.strNode0Validator {
@@ -407,5 +415,48 @@ func (m *ChainBuilder) syncGenesisFile(ic *types.IgniteConfig) (err error) {
 			}
 		}
 	}
+	return nil
+}
+
+func (m *ChainBuilder) showValidators(ic *types.IgniteConfig) (err error) {
+	cmdline := ""
+	output := ""
+	opt := m.option
+	maker := m.maker
+	cmd := utils.NewCmdExecutor(opt.Debug)
+	var names, accAddrs, valAddrs []string
+	for _, v := range ic.Validators {
+		cmdline = maker.MakeCmdLineKeysShowAddrOnly(v.Home, v.Name, "acc")
+		output, err = cmd.Shell(cmdline)
+		if err != nil {
+			return log.Errorf(err.Error())
+		}
+		idx := strings.LastIndex(output, "\n")
+		if idx >= 0 {
+			output = output[idx+1:]
+		}
+		log.Printf("validator acc addr [%s]", output)
+		names = append(names, v.Name)
+		accAddrs = append(accAddrs, output)
+	}
+	for _, v := range ic.Validators {
+		cmdline = maker.MakeCmdLineKeysShowAddrOnly(v.Home, v.Name, "val")
+		output, err = cmd.Shell(cmdline)
+		if err != nil {
+			return log.Errorf(err.Error())
+		}
+		idx := strings.LastIndex(output, "\n")
+		if idx >= 0 {
+			output = output[idx+1:]
+		}
+		log.Printf("validator val addr [%s]", output)
+		valAddrs = append(valAddrs, output)
+	}
+
+	log.Printf("-----------------------------------------------------------------------")
+	for i, v := range accAddrs {
+		log.Printf("[%s] %s => %s", names[i], v, valAddrs[i])
+	}
+	log.Printf("-----------------------------------------------------------------------")
 	return nil
 }
